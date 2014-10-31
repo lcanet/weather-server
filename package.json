@@ -3,7 +3,8 @@
     "description": "Weather server",
     "version": "0.0.1",
     "dependencies": {
-        "lodash": "2.4.1"
+        "lodash": "2.4.1",
+        "moment": "*"
     },
     "devDependencies": {
         "jasmine-node": "*"

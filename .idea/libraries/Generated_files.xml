@@ -3,12 +3,22 @@
     <properties>
       <sourceFilesUrls>
         <item url="file://$PROJECT_DIR$/spec/metarSpec.js" />
+        <item url="file://$PROJECT_DIR$/src/readMeters.js" />
         <item url="file://$PROJECT_DIR$/src/metar.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/moment/z.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/moment/f.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/moment/foo.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/moment/x.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
       <root url="file://$PROJECT_DIR$/spec/metarSpec.js" />
+      <root url="file://$PROJECT_DIR$/src/readMeters.js" />
       <root url="file://$PROJECT_DIR$/src/metar.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/moment/z.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/moment/f.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/moment/foo.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/moment/x.js" />
     </CLASSES>
     <SOURCES />
   </library>
