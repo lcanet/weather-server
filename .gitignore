@@ -1,0 +1,13 @@
+.idea/.name
+.idea/encodings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+.idea/weather-server.iml
+.idea/workspace.xml
+node_modules
+spec/metarSpec.js
+spec/metarSpec.js.map
+src/metar.js
+src/metar.js.map

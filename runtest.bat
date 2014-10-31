@@ -1,0 +1,1 @@
+jasmine-node --autotest spec --watch src
