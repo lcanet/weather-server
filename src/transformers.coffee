@@ -1,11 +1,24 @@
 _ = require 'lodash'
 winston = require 'winston'
 
-###
-geoNearResults = (array) ->
-  obj = cb.results[0].obj
-  obj.distance = cb.results[0].dis
-###
+copy = (source, dest, properties) ->
+  for key in properties
+    if source[key]
+      dest[key] = source[key]
+  dest
+
+toBare = (source) ->
+  dest = {}
+  copy source, dest, ['code', 'lat', 'lon', 'name', 'city', 'lastUpdate']
+  if source.last
+    copy source.last, dest, ['wind', 'visibility', 'clouds', 'temperature', 'dewpoint', 'altimeter', 'cavok', 'nosig', 'conditions', 'clear', 'visibilityInDirection']
+  dest
+
+toBareMetar = (source) ->
+  dest = toBare source
+  if source.last
+    dest.metar = source.last.metar
+  dest
 
 transform = (source, destFormat='bare') ->
   if _.isArray(source)
@@ -13,6 +26,10 @@ transform = (source, destFormat='bare') ->
       transform item, destFormat
   else
     if destFormat is 'bare'
+      toBare source
+    if destFormat is 'bareMetar'
+      toBareMetar source
+    else if destFormat is 'classic'
       source
     else
       winston.log 'warn', 'Unknown format to transform %s', destFormat
