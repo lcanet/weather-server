@@ -107,7 +107,7 @@ class Poller
             callback err
           else
             stats.nbHistoryEntries = insertedEntries.length
-            job = new UpdateStationJob db, entries
+            job = new UpdateStationJob db, insertedEntries
             job.update (err, updateEntries) ->
               if err
                 db.close()
