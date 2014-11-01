@@ -21,8 +21,33 @@ sendError = (res, message) ->
   winston.error message
   res.status(500).send(message || 'Sorry, we have an error')
 
+sendInvalid = (res, message) ->
+  res.status(400).send message
+
 app.get '/', (req,res) ->
   res.send 'Weather Server'
+
+app.get '/weather', (req,res) ->
+  lat = parseFloat(req.query.lat)
+  lon = parseFloat(req.query.lon)
+
+  if isNaN(lat) or isNaN(lon)
+    sendInvalid res, 'invalid parameters: need lat or lon'
+  else
+    backend.withConnection (err,db) ->
+      if err
+        sendError res, err
+      else
+        geoJsonpt = type:'Point', coordinates: [lon, lat]
+        db.command { geoNear: 'stations', near: geoJsonpt, spherical:true, limit:1, query: { last: {$exists: 1}}}, (err, cb) ->
+          if err
+            sendError res, err
+          else
+            obj = cb.results[0].obj
+            obj.distance = cb.results[0].dis
+            res.json(obj)
+          db.close()
+
 
 app.get '/station/:code', (req,res) ->
   backend.withConnection (err, db) ->
@@ -36,6 +61,7 @@ app.get '/station/:code', (req,res) ->
           res.json(doc)
         else
           res.status(404).send('Station not found')
+        db.close()
 
 app.get '/station/:code/history', (req,res) ->
   backend.withConnection (err, db) ->
@@ -49,6 +75,7 @@ app.get '/station/:code/history', (req,res) ->
           sendError res, err
         else
           res.json(doc)
+        db.close()
 
 
 app.get '/poll', (req,res) ->
