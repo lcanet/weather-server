@@ -3,6 +3,7 @@ winston = require 'winston'
 _ = require 'lodash'
 Backend = require('./backend').Backend
 Poller = require('./poller').Poller
+transformers = require './transformers'
 
 # DB Backend
 backend = new Backend()
@@ -34,18 +35,26 @@ app.get '/weather', (req,res) ->
   if isNaN(lat) or isNaN(lon)
     sendInvalid res, 'invalid parameters: need lat or lon'
   else
+    geoJsonpt = type:'Point', coordinates: [lon, lat]
+    query = { geoNear: 'stations', near: geoJsonpt, spherical:true, query: { last: {$exists: 1}}}
+    if req.query.distance
+      query.maxDistance = parseFloat(req.query.distance) * 1000
+      query.limit = parseInt(req.query.limit) or 100
+    else
+      query.limit = 1
     backend.withConnection (err,db) ->
       if err
         sendError res, err
       else
-        geoJsonpt = type:'Point', coordinates: [lon, lat]
-        db.command { geoNear: 'stations', near: geoJsonpt, spherical:true, limit:1, query: { last: {$exists: 1}}}, (err, cb) ->
+        db.command query, (err, cb) ->
           if err
             sendError res, err
           else
-            obj = cb.results[0].obj
-            obj.distance = cb.results[0].dis
-            res.json(obj)
+            if query.limit is 1
+              res.json(transformers.transformGeoNear(cb.results[0], req.query.format))
+            else
+              res.json(transformers.transformGeoNears(cb.results, req.query.format))
+
           db.close()
 
 
@@ -58,7 +67,7 @@ app.get '/station/:code', (req,res) ->
         if err
           sendError res, err
         else if doc
-          res.json(doc)
+          res.json(transformers.transform(doc, req.query.format))
         else
           res.status(404).send('Station not found')
         db.close()
@@ -70,11 +79,11 @@ app.get '/station/:code/history', (req,res) ->
       sendError res
     else
       limit = parseInt(req.params.limit) || 100
-      db.collection('history').find({icao: req.params.code}, { sort: [['date', -1]], limit: limit}).toArray (err, doc) ->
+      db.collection('history').find({icao: req.params.code}, { sort: [['date', -1]], limit: limit}).toArray (err, docs) ->
         if err
           sendError res, err
         else
-          res.json(doc)
+          res.json(transformers.transform(docs, req.query.format))
         db.close()
 
 
