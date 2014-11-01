@@ -4,7 +4,13 @@
     "version": "0.0.1",
     "dependencies": {
         "lodash": "2.4.1",
-        "moment": "*"
+        "moment": "2.8.3",
+        "mongodb": "1.4.19",
+        "express": "4.10.1",
+        "request": "2.47.0",
+        "async": "0.2.5",
+        "cron": "1.0.1"
+
     },
     "devDependencies": {
         "jasmine-node": "*"

@@ -82,6 +82,7 @@ class MetarParser
       @index = -1
       @result = {}
       @visibilityCarry = 0
+      @unknownTokens = []
 
 
   parse: ->
@@ -94,7 +95,7 @@ class MetarParser
       @result.icao = token
     else if index is 1 and (match = token.match(/^[0-3][0-9][0-9]{4}Z$/))
       @result.day = parseInt(match[0].substring(0,2))
-      @result.hour = parseInt(match[0].substring(2,4)) + parseInt(match[0].substring(4,6))*60
+      @result.hour = parseInt(match[0].substring(2,4))*60 + parseInt(match[0].substring(4,6))
     else if token is 'AUTO'
       @result.automatic = true
     else if token is 'COR'
@@ -114,14 +115,14 @@ class MetarParser
     else if match  = token.match(/^([0-9]{4})([NSEW]+)$/)
       @parseVisibilityInDirection match
     else if match = token.match(/^M?([0-9]+)(\/[0-9]+)?SM$/)
-      @parseVisibility(match)
+      @parseVisibility match
       @visibilityCarry = 0
     else if token.match(/^M?[0-9]+\/(M?[0-9]+)?$/)
-      @parseTemperatures(token)
+      @parseTemperatures token
     else if token.match(/^[AQ][0-9]{2}[\.\\/]?[0-9]{2}$/)
-      @parseAltimer(token)
+      @parseAltimer token
     else if match = token.match(/^(SKC|CLR|NSC|FEW|SCT|BKN|OVC|VV)([0-9]+)?(.*)?\/*$/)
-      @parseClouds(match)
+      @parseClouds match
     else if token.match(/^(SCSL|CB|ACSL|CMBMAM|CCSL)$/)
       @addLastCloudType token
     else if token.match(/^R[0-9]+[LRC]?\/.*$/)
@@ -143,8 +144,9 @@ class MetarParser
       @inRemarks = false
       @inTempo = true
     else if token.match(/^\/+$/)
+      # nothing
     else if !@inRemarks && !@inTempo
-      console.log('UNKNOWN TOKEN ' + token + ' for ' + @tokens.join(' '))
+      @unknownTokens.push token
 
   parseWind: (match) ->
     unit = match[4]
