@@ -1,6 +1,7 @@
 _ = require 'lodash'
 
-normalizeSpeed = (speed, unit) ->
+# Normalize to knots
+normalizeSpeed = (speed, unit = 'KT') ->
   if unit is 'KT'
     speed
   else if unit is 'KTS'
@@ -10,7 +11,8 @@ normalizeSpeed = (speed, unit) ->
   else if unit is 'KMH'
     speed / 1.852
 
-normalizeDistance = (dist, unit) ->
+# Normalize to meters
+normalizeDistance = (dist, unit = 'M') ->
   if unit is 'M'
     dist
   else if unit is 'SM'
@@ -95,10 +97,8 @@ class MetarParser
       @result.automatic = true
     else if token is 'COR'
       @result.corrected = true
-    else if match = token.match(/^([0-9\/]{3})([0-9\/]{2,})(G[0-9]+)?(MPS|KT|KMH|KTS)$/)
+    else if match = token.match(/^([0-9\/]{3}|VRB)([0-9\/]{2,})(G[0-9]+)?(MPS|KT|KMH|KTS)$/)
       @parseWind(match)
-    else if match = token.match(/^VRB([0-9]+)(MPS|KT|KMH|KTS)$/)
-      @parseVariableWind(match)
     else if match = token.match(/^([0-9]{3})V([0-9]{3})$/)
       @parseVariableWindDirection(match)
     else if token is '1'
@@ -140,18 +140,19 @@ class MetarParser
 
   parseWind: (match) ->
     unit = match[4]
-    @result.wind =
-      direction: parseInt(match[1])
+    wind = {
       speed: normalizeSpeed(parseInt(match[2]), unit)
-    if match[3]
-      @result.wind.gust = normalizeSpeed(parseInt(match[3].substring(1)), unit)
+    }
+    if match[1] is 'VRB'
+      wind.variable = true
+    else
+      wind.direction = parseInt(match[1])
 
-  parseVariableWind: (match) ->
-    ### Wind variable ###
-    unit = match[2]
-    @result.wind =
-      variable: true,
-      speed: normalizeSpeed(parseInt(match[1]), unit)
+    if match[3]
+      wind.gust = normalizeSpeed(parseInt(match[3].substring(1)), unit)
+
+    @result.wind = wind
+
 
   parseVariableWindDirection: (match) ->
     if (!@result.wind)

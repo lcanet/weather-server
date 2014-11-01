@@ -26,6 +26,12 @@ describe "METAR Decoder", ->
     expect(r.wind.variable).toBe true
     expect(r.wind.speed).toBe 3
 
+  it 'Should read variable wind with gust', ->
+    r = metar.decode('CYGW 010345Z AUTO VRB11G16KT 5SM -SN FEW018 SCT028 BKN033 OVC050 M02/M04 A3018 RMK SLP222')
+    expect(r.wind.variable).toBe true
+    expect(r.wind.speed).toBe 11
+    expect(r.wind.gust).toBe 16
+
   it 'Should read wind gusts', ->
     r = metar.decode('KHOB 302350Z 03012G18KT 10SM SKC 22/08 A3020')
     expect(r.wind.speed).toBe 12
