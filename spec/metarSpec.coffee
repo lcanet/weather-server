@@ -9,7 +9,7 @@ describe "METAR Decoder", ->
   it 'Should read hour', ->
     r = metar.decode('KAIK 302355Z AUTO 00000KT 10SM CLR 14/07 A3000 RMK AO2 LTG DSNT S PN0')
     expect(r.day).toBe 30
-    expect(r.hour).toBe 3323
+    expect(r.hour).toBe 1435
 
   it 'Should read wind', ->
     r = metar.decode('KHYR 302346Z AUTO 32005KT 10SM FEW022 BKN048 OVC055 03/01 A3012 RMK AO2 RAB2255E38 P0000 T00280006')
@@ -48,11 +48,13 @@ describe "METAR Decoder", ->
 
   it 'Should read statue miles visibility', ->
     r = metar.decode('KDYB 302355Z AUTO 00000KT 4SM BR CLR 15/14 A2996 RMK AO1')
-    expect(r.visibility).toBeCloseTo 6.436, 2
+    expect(r.visibility).toBeCloseTo 6436, 2
+    r = metar.decode 'KAIK 312355Z AUTO 27053KT 10SM -RA SCT070 OVC090 16/10 A2983 RMK AO2 PNO'
+    expect(r.visibility).toBeCloseTo 16090, 1
 
   it 'Should read fractional visibility', ->
     r = metar.decode('KMLP 302345Z AUTO 15009KT 1 1/2SM BR FEW001 BKN055 03/03 A3007 RMK AO2 T00280028')
-    expect(r.visibility).toBeCloseTo  2.4135
+    expect(r.visibility).toBeCloseTo  2413.5, 2
 
   it 'Should parse visibility in direction', ->
     r = metar.decode 'EDDF 010350Z 00000KT 1200 0500S R25R/1300VP2000D R25C/P2000N R25L/0800VP2000U R18/P2000N PRFG MIFG BR SCT004 06/06 Q1023 BECMG 0700 FG'
@@ -97,8 +99,15 @@ describe "METAR Decoder", ->
     r = metar.decode('CYUA 302345Z AUTO 25004KT 6SM -SN M09/ A2991')
     expect(r.conditions.length).toBe 1
     expect(r.conditions[0].type).toBe 'SN'
-    expect(r.conditions[0].label).toBe 'snow'
-    expect(r.conditions[0].intensity).toBe 'light'
+    expect(r.conditions[0].label).toBe 'light snow'
+    expect(r.conditions[0].intensity).toBe '-'
+
+  it 'Should parse complex conditions', ->
+    r = metar.decode 'RJTT 011000Z 01008KT 5000 -RA BR FEW005 BKN006 BKN020 17/16 Q1013 TEMPO 4000 -SHRA BR'
+    expect(r.conditions.length).toBe 4
+    expect(r.conditions[2].intensity).toBe '-'
+    expect(r.conditions[2].descriptor).toBe 'SH'
+    expect(r.conditions[2].label).toBe 'light showers of rain'
 
   it 'Should read altimeter settings', ->
     r = metar.decode 'K04W 010345Z AUTO 00000KT 10SM CLR M05/M07 A3048 RMK AO2'

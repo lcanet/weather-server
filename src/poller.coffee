@@ -3,6 +3,7 @@ moment = require 'moment'
 metar = require './metar'
 _ = require 'lodash'
 async = require 'async'
+winston = require 'winston'
 cronJob = require('cron').CronJob
 
 # BASE_URL = 'http://weather.noaa.gov/pub/data/observations/metar/cycles/'
@@ -13,11 +14,13 @@ Insert history entries
 ###
 
 class InsertHistoryJob
-  constructor: (@collection, @entries) ->
+  constructor: (db, @entries) ->
+    @collection = db.collection 'history'
     @filteredEntries = []
 
   insert: (callback) ->
-    console.log 'check history ' + @entries.length
+    winston.log 'info', 'Processing %d lines of history insert', @entries.length
+
     # remove duplicates in batch
     @entries = _.uniq(@entries, false, (entry) -> entry.icao + '_' + entry.date.getTime())
     @filterEntries callback
@@ -37,7 +40,7 @@ class InsertHistoryJob
         @filterEntries callback
 
   processFilteredEntries: (callback) ->
-    console.log 'filtered ' + @filteredEntries.length
+    winston.log 'info', 'Filtered %d lines of history to write', @filteredEntries.length
     if @filteredEntries.length > 0
       @collection.insert @filteredEntries, {w: 1}, (err, ids) =>
         callback err, @filteredEntries
@@ -48,11 +51,12 @@ class InsertHistoryJob
 Update stations collection with up-to-entries if necesseray
 ###
 class UpdateStationJob
-  constructor: (@collection, @entries) ->
+  constructor: (db, @entries) ->
+    @collection = db.collection('stations')
     @filteredEntries = []
 
   update: (callback) ->
-    console.log 'Updating ' + @entries.length
+    winston.log 'info', 'Updating stations with %d entries', @entries.length
     @processNextEntry callback
 
   needsUpdate: (doc, entry) ->
@@ -60,7 +64,7 @@ class UpdateStationJob
 
   processNextEntry: (callback) ->
     if @entries.length == 0
-      console.log 'Updated ' + @filteredEntries.length
+      winston.log 'info', 'Updated %d stations', @filteredEntries.length
       callback null, @filteredEntries
     else
       entry = @entries.pop()
@@ -92,39 +96,30 @@ class Poller
 
   processEntries: (entries, stats, callback) ->
     stats.nbEntries = entries.length
-    @processHistoryEntries entries, stats, callback
-
-  processUpdateEntries: (entries, stats, callback) ->
-    # first filter entries not present
-    @backend.withCollection 'stations', (err, col) =>
+    @backend.withConnection (err, db) =>
       if err
         callback err
       else
-        job = new UpdateStationJob col, entries
-        job.update (err, updateEntries) ->
-          if err
-            callback err
-          else
-            stats.nbStationsUpdated = updateEntries.length
-            callback null ,stats
-
-  processHistoryEntries: (entries, stats, callback) ->
-    # first filter entries not present
-    @backend.withCollection 'history', (err, col) =>
-      if err
-        callback err
-      else
-        job = new InsertHistoryJob col, entries
+        job = new InsertHistoryJob db, entries
         job.insert (err, insertedEntries) =>
           if err
+            db.close()
             callback err
           else
             stats.nbHistoryEntries = insertedEntries.length
-            @processUpdateEntries insertedEntries, stats, callback
+            job = new UpdateStationJob db, entries
+            job.update (err, updateEntries) ->
+              if err
+                db.close()
+                callback err
+              else
+                stats.nbStationsUpdated = updateEntries.length
+                db.close()
+                callback null, stats
 
   pollOneFile: (file, callback) ->
     url = BASE_URL + file
-    console.log 'Downloading ' + url
+    winston.log 'info', 'Downloading cycle file %s', url
     request url, (err, resp, body) =>
       if err
         callback err
@@ -162,8 +157,13 @@ class Poller
 
   startPoller: ->
     pollHandler = () =>
-      @pollDir()
+      winston.info 'Polling of metar cycles directory'
+      @pollDir (err) ->
+        if (err)
+          winston.error 'Polling failed : ' + err
 
     new cronJob('00 3 * * * *', pollHandler).start()
+    winston.info 'Poller started'
 
 exports.Poller = Poller
+

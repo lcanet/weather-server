@@ -18,7 +18,7 @@ normalizeDistance = (dist, unit = 'M') ->
   else if unit is 'FT'
     dist / 3.28
   else if unit is 'SM'
-    dist * 1.609
+    dist * 1609
   else
     dist
 
@@ -29,6 +29,7 @@ parseTemperature = (temp) ->
 
 
 CONDITIONS = {
+  # descriptor
   MI: "shallow",
   PR: "partial",
   BC: "patches",
@@ -37,6 +38,7 @@ CONDITIONS = {
   SH: "showers",
   TS: "thunderstorm",
   FZ: "freezing",
+  # Precipitation
   RA: "rain",
   DZ: "drizzle",
   SN: "snow",
@@ -46,6 +48,7 @@ CONDITIONS = {
   GR: "hail",
   GS: "small hail",
   UP: "unknown precipitation",
+  # Obscruration
   FG: "fog",
   VA: "volcanic ash",
   BR: "mist",
@@ -54,6 +57,7 @@ CONDITIONS = {
   FU: "smoke",
   SA: "sand",
   PY: "spray",
+  # Other
   SQ: "squall",
   PO: "dust or sand whirls",
   DS: "duststorm",
@@ -136,7 +140,7 @@ class MetarParser
     else if token is 'CAVOK'
       @result.cavok = true
     else if token is 'NOSIG'
-      @result.cavok = true
+      @result.nosig = true
     else if token is 'RMK'
       @inRemarks = true
       @inTempo = false
@@ -218,21 +222,37 @@ class MetarParser
 
     cond = {}
     if match.charAt(0) is '-'
-      cond.intensity = 'light'
+      cond.intensity = '-'
       match = match.substring(1)
     else if match.charAt(0) is '+'
-      cond.intensity = 'heavy'
+      cond.intensity = '+'
       match = match.substring(1)
 
     if match[0..2] is 'VC'
       cond.vicinity = true
       match = match.substring(2)
 
-    cond.type = match
-    if CONDITIONS[cond.type]
-      cond.label = CONDITIONS[cond.type]
+    if match.length is 4
+      cond.descriptor = match[0..1]
+      match = match.substring(2)
 
+    cond.type = match
+    cond.label = @labelizeCondition cond
     @result.conditions.push(cond)
+
+  labelizeCondition: (cond) ->
+    lbl = ''
+    if cond.intensity is '-'
+      lbl += 'light '
+    if cond.intensity is '+'
+        lbl += 'heavy '
+    if cond.descriptor and CONDITIONS[cond.descriptor]
+      lbl += CONDITIONS[cond.descriptor] + ' of '
+    if CONDITIONS[cond.type]
+      lbl += CONDITIONS[cond.type]
+    if cond.vicinity
+      lbl += ' in the vicinity'
+    lbl
 
 exports.decode = (metar) ->
   new MetarParser(metar).parse()

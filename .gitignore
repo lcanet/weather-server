@@ -11,3 +11,4 @@ spec/metarSpec.js
 spec/metarSpec.js.map
 src/metar.js
 src/metar.js.map
+src/*.js.map
