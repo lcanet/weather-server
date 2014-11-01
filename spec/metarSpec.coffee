@@ -54,6 +54,12 @@ describe "METAR Decoder", ->
     r = metar.decode('KMLP 302345Z AUTO 15009KT 1 1/2SM BR FEW001 BKN055 03/03 A3007 RMK AO2 T00280028')
     expect(r.visibility).toBeCloseTo  2.4135
 
+  it 'Should parse visibility in direction', ->
+    r = metar.decode 'EDDF 010350Z 00000KT 1200 0500S R25R/1300VP2000D R25C/P2000N R25L/0800VP2000U R18/P2000N PRFG MIFG BR SCT004 06/06 Q1023 BECMG 0700 FG'
+    expect(r.visibilityInDirection.length).toBe 1
+    expect(r.visibilityInDirection[0].value).toBe 500
+    expect(r.visibilityInDirection[0].direction).toBe 'S'
+
   it 'Should parse  temperatures', ->
     r = metar.decode('KSUN 302347Z 18005KT 10SM SCT070 BKN160 15/M01 A3016')
     expect(r.temperature).toBe 15
@@ -76,6 +82,10 @@ describe "METAR Decoder", ->
     expect(r.clouds[0].altitude).toBe 2100
     expect(r.clouds[0].cloudType).toBe 'CB'
 
+  it 'Should parse trailing cloud type', ->
+    r = metar.decode 'OSLK 010400Z 15008KT 7000 SCT026 CB BKN030 15/12 Q1012'
+    expect(r.clouds.length).toBe 2
+    expect(r.clouds[0].cloudType).toBe 'CB'
 
   it 'Should parse conditions', ->
     r = metar.decode('KDYB 302355Z AUTO 00000KT 4SM BR CLR 15/14 A2996 RMK AO1')

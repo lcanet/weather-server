@@ -15,6 +15,8 @@ normalizeSpeed = (speed, unit = 'KT') ->
 normalizeDistance = (dist, unit = 'M') ->
   if unit is 'M'
     dist
+  else if unit is 'FT'
+    dist / 3.28
   else if unit is 'SM'
     dist * 1.609
   else
@@ -59,7 +61,7 @@ CONDITIONS = {
   FC: "funnel cloud"
 };
 
-CONDITIONS_REGEX = '^(\\+|-|VC)?(' + (_.keys(CONDITIONS).join('|')) + ')+$'
+CONDITIONS_REGEX = '^(\\+|-)?(VC)?(' + (_.keys(CONDITIONS).join('|')) + ')+$'
 
 CLOUD_COLORS = {
   BLU: 'blue',
@@ -107,15 +109,21 @@ class MetarParser
       @visibilityCarry = 2
     else if match  = token.match(/^([0-9]{4})(NDV)?$/)
       @result.visibility = normalizeDistance(parseInt(match[1]), 'M')
-    else if match = token.match(/^([0-9]+)(\/[0-9]+)?SM$/)
+    else if match  = token.match(/^([0-9]{4})FT?$/)
+      @result.visibility = normalizeDistance(parseInt(match[1]), 'FT')
+    else if match  = token.match(/^([0-9]{4})([NSEW]+)$/)
+      @parseVisibilityInDirection match
+    else if match = token.match(/^M?([0-9]+)(\/[0-9]+)?SM$/)
       @parseVisibility(match)
       @visibilityCarry = 0
     else if token.match(/^M?[0-9]+\/(M?[0-9]+)?$/)
       @parseTemperatures(token)
-    else if token.match(/^[AQ][0-9]{2}\.?[0-9]{2}$/)
+    else if token.match(/^[AQ][0-9]{2}[\.\\/]?[0-9]{2}$/)
       @parseAltimer(token)
     else if match = token.match(/^(SKC|CLR|NSC|FEW|SCT|BKN|OVC|VV)([0-9]+)?(.*)?\/*$/)
       @parseClouds(match)
+    else if token.match(/^(SCSL|CB|ACSL|CMBMAM|CCSL)$/)
+      @addLastCloudType token
     else if token.match(/^R[0-9]+[LRC]?\/.*$/)
       ### skip unsupported runway visibility ###
     else if token is 'CLR' or token is 'NCD'
@@ -166,6 +174,13 @@ class MetarParser
       @result.visibility = normalizeDistance(@visibilityCarry + visibFrac, 'SM')
       @visibilityCarry = 0
 
+  parseVisibilityInDirection: (match) ->
+    if !@result.visibilityInDirection
+      @result.visibilityInDirection = []
+
+    visib = value:parseInt(match[1]), direction:match[2]
+    @result.visibilityInDirection.push visib
+
   parseTemperatures: (token) ->
     parts = token.split('/')
     @result.temperature = parseTemperature(parts[0])
@@ -191,6 +206,10 @@ class MetarParser
 
     @result.clouds.push(cloud)
 
+  addLastCloudType: (match) ->
+    if @result.clouds?.length > 0 and !@result.clouds[0].cloudType
+      @result.clouds[0].cloudType = match
+
   parseCondition: (match) ->
     if !@result.conditions
       @result.conditions= []
@@ -202,7 +221,8 @@ class MetarParser
     else if match.charAt(0) is '+'
       cond.intensity = 'heavy'
       match = match.substring(1)
-    else if match[0..2] is 'VC'
+
+    if match[0..2] is 'VC'
       cond.vicinity = true
       match = match.substring(2)
 
