@@ -89,3 +89,13 @@ describe "METAR Decoder", ->
     expect(r.conditions[0].type).toBe 'SN'
     expect(r.conditions[0].label).toBe 'snow'
     expect(r.conditions[0].intensity).toBe 'light'
+
+  it 'Should read altimeter settings', ->
+    r = metar.decode 'K04W 010345Z AUTO 00000KT 10SM CLR M05/M07 A3048 RMK AO2'
+    expect(r.altimeter).toBeCloseTo 1032.05
+    r = metar.decode 'K04W 010345Z AUTO 00000KT 10SM CLR M05/M07 A30.48 RMK AO2'
+    expect(r.altimeter).toBeCloseTo 1032.05
+
+  it 'Should read altimeter settings in Q', ->
+    r = metar.decode 'K04W 010345Z AUTO 00000KT 10SM CLR M05/M07 Q1013 RMK AO2'
+    expect(r.altimeter).toBeCloseTo 1013

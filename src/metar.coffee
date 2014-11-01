@@ -112,7 +112,7 @@ class MetarParser
       @visibilityCarry = 0
     else if token.match(/^M?[0-9]+\/(M?[0-9]+)?$/)
       @parseTemperatures(token)
-    else if token.match(/^[AQ][0-9]+$/)
+    else if token.match(/^[AQ][0-9]{2}\.?[0-9]{2}$/)
       @parseAltimer(token)
     else if match = token.match(/^(SKC|CLR|NSC|FEW|SCT|BKN|OVC|VV)([0-9]+)?(.*)?\/*$/)
       @parseClouds(match)
@@ -172,7 +172,7 @@ class MetarParser
     @result.dewPoint = parseTemperature(parts[1])
 
   parseAltimer: (token) ->
-    value = parseInt(token.substring(1))
+    value = parseInt(token.substring(1).replace('.', ''))
     if token.charAt(0) == 'A'
       value = value / 100 * 33.86
     @result.altimeter = value
