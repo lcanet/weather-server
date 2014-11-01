@@ -63,9 +63,9 @@ app.get '/weather', (req,res) ->
             sendError res, err
           else
             if query.limit is 1
-              res.json(transformers.transformGeoNear(cb.results[0], req.query.format))
+              res.jsonp(transformers.transformGeoNear(cb.results[0], req.query.format))
             else
-              res.json(transformers.transformGeoNears(cb.results, req.query.format))
+              res.jsonp(transformers.transformGeoNears(cb.results, req.query.format))
 
           db.close()
 
@@ -81,7 +81,7 @@ app.get '/station/:code', (req,res) ->
         if err
           sendError res, err
         else if doc
-          res.json(transformers.transform(doc, req.query.format))
+          res.jsonp(transformers.transform(doc, req.query.format))
         else
           res.status(404).send('Station not found')
         db.close()
@@ -97,7 +97,7 @@ app.get '/station/:code/history', (req,res) ->
         if err
           sendError res, err
         else
-          res.json(transformers.transform(docs, req.query.format))
+          res.jsonp(transformers.transform(docs, req.query.format))
         db.close()
 
 
