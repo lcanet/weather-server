@@ -51,7 +51,12 @@ app.get '/station/:code/history', (req,res) ->
           res.json(doc)
 
 
-
+app.get '/poll', (req,res) ->
+  winston.log 'info', 'Polling forced'
+  res.send 'OK'
+  poller.pollDir (err, res) ->
+    if err
+      winston.error 'Error while polling :' + err
 
 # run server
 

@@ -6,8 +6,8 @@ async = require 'async'
 winston = require 'winston'
 cronJob = require('cron').CronJob
 
-# BASE_URL = 'http://weather.noaa.gov/pub/data/observations/metar/cycles/'
-BASE_URL = 'http://laser/~lc/metar/'
+BASE_URL = 'http://weather.noaa.gov/pub/data/observations/metar/cycles/'
+#BASE_URL = 'http://laser/~lc/metar/'
 
 ###
 Insert history entries
