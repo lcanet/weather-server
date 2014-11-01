@@ -1,6 +1,8 @@
 express = require 'express'
 winston = require 'winston'
 _ = require 'lodash'
+logEntries = require 'winston-logentries'
+config = require '../config.json'
 Backend = require('./backend').Backend
 Poller = require('./poller').Poller
 transformers = require './transformers'
@@ -8,6 +10,8 @@ responseTime = require './responseTime'
 
 # Logging
 winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
+if config.logEntriesToken
+  winston.add(winston.transports.Logentries, { token: config.logEntriesToken, level: 'debug' });
 
 
 # DB Backend

@@ -2,23 +2,41 @@
   <library name="Generated files" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/spec/metarSpec.js" />
+        <item url="file://$PROJECT_DIR$/src/poller.js" />
+        <item url="file://$PROJECT_DIR$/src/backend.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/express/node_modules/proxy-addr/node_modules/ipaddr.js/test/ipaddr.test.js" />
         <item url="file://$PROJECT_DIR$/src/readMeters.js" />
         <item url="file://$PROJECT_DIR$/src/metar.js" />
         <item url="file://$PROJECT_DIR$/node_modules/moment/z.js" />
+        <item url="file://$PROJECT_DIR$/src/transformers.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/express/node_modules/proxy-addr/node_modules/ipaddr.js/src/ipaddr.js" />
         <item url="file://$PROJECT_DIR$/node_modules/moment/f.js" />
+        <item url="file://$PROJECT_DIR$/src/responseTime.js" />
         <item url="file://$PROJECT_DIR$/node_modules/moment/foo.js" />
         <item url="file://$PROJECT_DIR$/node_modules/moment/x.js" />
+        <item url="file://$PROJECT_DIR$/spec/metarSpec.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/winston-logentries/src/winston-logentries.js" />
+        <item url="file://$PROJECT_DIR$/node_modules/winston-logentries/test/winston-logentries.spec.js" />
+        <item url="file://$PROJECT_DIR$/src/server.js" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/spec/metarSpec.js" />
+      <root url="file://$PROJECT_DIR$/src/poller.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/express/node_modules/proxy-addr/node_modules/ipaddr.js/test/ipaddr.test.js" />
+      <root url="file://$PROJECT_DIR$/src/backend.js" />
       <root url="file://$PROJECT_DIR$/src/readMeters.js" />
       <root url="file://$PROJECT_DIR$/src/metar.js" />
       <root url="file://$PROJECT_DIR$/node_modules/moment/z.js" />
+      <root url="file://$PROJECT_DIR$/src/transformers.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/express/node_modules/proxy-addr/node_modules/ipaddr.js/src/ipaddr.js" />
+      <root url="file://$PROJECT_DIR$/src/responseTime.js" />
       <root url="file://$PROJECT_DIR$/node_modules/moment/f.js" />
       <root url="file://$PROJECT_DIR$/node_modules/moment/foo.js" />
       <root url="file://$PROJECT_DIR$/node_modules/moment/x.js" />
+      <root url="file://$PROJECT_DIR$/spec/metarSpec.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/winston-logentries/src/winston-logentries.js" />
+      <root url="file://$PROJECT_DIR$/node_modules/winston-logentries/test/winston-logentries.spec.js" />
+      <root url="file://$PROJECT_DIR$/src/server.js" />
     </CLASSES>
     <SOURCES />
   </library>
