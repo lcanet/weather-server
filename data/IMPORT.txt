@@ -1,2 +1,2 @@
 To import initial stations data
-mongoimport  -d weather -c stations --type csv  --headerline --file stations.csv
+mongoimport  -d weather -c stations --type json --file stations.json
