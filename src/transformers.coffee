@@ -27,7 +27,7 @@ transform = (source, destFormat='bare') ->
   else
     if destFormat is 'bare'
       toBare source
-    if destFormat is 'bareMetar'
+    else if destFormat is 'bareMetar'
       toBareMetar source
     else if destFormat is 'classic'
       source

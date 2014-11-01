@@ -12,3 +12,5 @@ spec/metarSpec.js.map
 src/metar.js
 src/metar.js.map
 src/*.js.map
+weather-server.log
+weather-server.log.*

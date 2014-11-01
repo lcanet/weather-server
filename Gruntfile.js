@@ -10,7 +10,10 @@ module.exports = function(grunt) {
                     'src/metar.js': 'src/metar.coffee',
                     'src/poller.js': 'src/poller.coffee',
                     'src/backend.js': 'src/backend.coffee',
-                    'src/server.js': 'src/server.coffee'
+                    'src/server.js': 'src/server.coffee',
+                    'src/transformers.js': 'src/transformers.coffee',
+                    'src/responseTime.js': 'src/responseTime.coffee'
+
                 }
             }
         }

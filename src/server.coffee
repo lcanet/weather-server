@@ -4,6 +4,11 @@ _ = require 'lodash'
 Backend = require('./backend').Backend
 Poller = require('./poller').Poller
 transformers = require './transformers'
+responseTime = require './responseTime'
+
+# Logging
+winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
+
 
 # DB Backend
 backend = new Backend()
@@ -13,6 +18,7 @@ poller = new Poller(backend)
 poller.startPoller()
 
 app = express()
+app.use(responseTime())
 
 # define routes
 
@@ -42,6 +48,8 @@ app.get '/weather', (req,res) ->
       query.limit = parseInt(req.query.limit) or 100
     else
       query.limit = 1
+    winston.log 'debug', 'Weather request at ' + lat + ' - ' + lon
+
     backend.withConnection (err,db) ->
       if err
         sendError res, err
@@ -59,6 +67,8 @@ app.get '/weather', (req,res) ->
 
 
 app.get '/station/:code', (req,res) ->
+  winston.log 'debug', 'Request station %s', req.params.code
+
   backend.withConnection (err, db) ->
     if err
       sendError res, err

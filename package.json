@@ -10,7 +10,8 @@
         "request": "2.47.0",
         "async": "0.2.5",
         "cron": "1.0.1",
-        "winston": "0.8.1"
+        "winston": "0.8.1",
+        "on-headers": "~1.0.0"
 
     },
     "devDependencies": {
