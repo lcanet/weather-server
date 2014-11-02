@@ -1,6 +1,7 @@
 _ = require 'lodash'
 moment = require('moment')
 momentTz = require('moment-timezone')
+SunCalc = require 'suncalc'
 
 stateOktas = (state) ->
   switch state
@@ -28,12 +29,19 @@ condDesc = (metar, descriptors...) ->
 condType = (metar, types...) ->
   !!_.find metar.conditions, (cond) -> _.contains(types, cond.type)
 
+
 iconify = (metar, station) ->
   icon = ''
 
-  localHour = moment(metar.date).tz(station.tz).hour()
-  isNight = localHour >= 22 || localHour < 6
-  isDay = !isNight
+  localTime = moment(metar.date).tz(station.tz)
+  times = SunCalc.getTimes metar.date, station.lat, station.lon
+  dawn = moment(times.dawn)
+  dusk = moment(times.dusk)
+
+  isDay = (localTime.hour() > dawn.hour() || (localTime.hour() == dawn.hour() && localTime.minutes() > dawn.minutes())) &&
+    (localTime.hour() < dusk.hour() || (localTime.hour() == dusk.hour() && localTime.minutes() <= dusk.minutes()))
+
+  isNight = !isDay
   cloud = cloudOktas metar
   wind = metar.wind?.speed
   gust = metar.wind?.gust

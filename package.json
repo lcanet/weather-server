@@ -13,7 +13,8 @@
         "winston": "0.8.1",
         "on-headers": "~1.0.0",
         "winston-logentries": "1.0.1",
-        "moment-timezone": "0.2.4"
+        "moment-timezone": "0.2.4",
+        "suncalc": "1.6.0"
 
     },
     "devDependencies": {
