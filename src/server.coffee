@@ -22,7 +22,7 @@ poller = new Poller(backend)
 poller.startPoller()
 
 app = express()
-app.use(responseTime())
+app.use responseTime()
 
 # define routes
 
@@ -34,6 +34,8 @@ sendError = (res, message) ->
 
 sendInvalid = (res, message) ->
   res.status(400).send message
+
+app.use '/web', express.static('web')
 
 app.get '/', (req,res) ->
   res.send 'Weather Server'

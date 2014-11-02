@@ -1,5 +1,8 @@
 _ = require 'lodash'
 winston = require 'winston'
+iconifier = require './iconifier'
+moment = require('moment')
+momentTz = require('moment-timezone')
 
 copy = (source, dest, properties) ->
   for key in properties
@@ -7,9 +10,16 @@ copy = (source, dest, properties) ->
       dest[key] = source[key]
   dest
 
+makeBasic = (source) ->
+  dest = copy source, {}, ['code', 'lat', 'lon', 'name', 'city']
+  if source.lastUpdate and source.tz
+    dest.lastUpdate = moment(source.lastUpdate).tz(source.tz).format()
+  else
+    dest.lastUpdate = source.lastUpdate
+  dest
+
 toBare = (source) ->
-  dest = {}
-  copy source, dest, ['code', 'lat', 'lon', 'name', 'city', 'lastUpdate']
+  dest = makeBasic source
   if source.last
     copy source.last, dest, ['wind', 'visibility', 'clouds', 'temperature', 'dewpoint', 'altimeter', 'cavok', 'nosig', 'conditions', 'clear', 'visibilityInDirection']
   dest
@@ -20,6 +30,14 @@ toBareMetar = (source) ->
     dest.metar = source.last.metar
   dest
 
+toSimple = (source) ->
+  dest = makeBasic source
+  if source.last
+    copy source.last, dest, ['temperature', 'wind']
+    dest.icons = iconifier source.last, source
+  dest
+
+
 transform = (source, destFormat='bare') ->
   if _.isArray(source)
     _.map source, (item) ->
@@ -29,6 +47,8 @@ transform = (source, destFormat='bare') ->
       toBare source
     else if destFormat is 'bareMetar'
       toBareMetar source
+    else if destFormat is 'simple'
+      toSimple source
     else if destFormat is 'classic'
       source
     else

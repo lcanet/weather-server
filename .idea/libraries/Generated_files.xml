@@ -2,10 +2,10 @@
   <library name="Generated files" type="javaScript">
     <properties>
       <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/src/iconifier.js" />
         <item url="file://$PROJECT_DIR$/src/poller.js" />
         <item url="file://$PROJECT_DIR$/src/backend.js" />
         <item url="file://$PROJECT_DIR$/node_modules/express/node_modules/proxy-addr/node_modules/ipaddr.js/test/ipaddr.test.js" />
-        <item url="file://$PROJECT_DIR$/src/readMeters.js" />
         <item url="file://$PROJECT_DIR$/src/metar.js" />
         <item url="file://$PROJECT_DIR$/node_modules/moment/z.js" />
         <item url="file://$PROJECT_DIR$/src/transformers.js" />
@@ -21,10 +21,11 @@
       </sourceFilesUrls>
     </properties>
     <CLASSES>
+      <root url="file://$PROJECT_DIR$/src/readMeters.js" />
       <root url="file://$PROJECT_DIR$/src/poller.js" />
+      <root url="file://$PROJECT_DIR$/src/iconifier.js" />
       <root url="file://$PROJECT_DIR$/node_modules/express/node_modules/proxy-addr/node_modules/ipaddr.js/test/ipaddr.test.js" />
       <root url="file://$PROJECT_DIR$/src/backend.js" />
-      <root url="file://$PROJECT_DIR$/src/readMeters.js" />
       <root url="file://$PROJECT_DIR$/src/metar.js" />
       <root url="file://$PROJECT_DIR$/node_modules/moment/z.js" />
       <root url="file://$PROJECT_DIR$/src/transformers.js" />

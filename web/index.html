@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Weather</title>
+    <link rel="stylesheet" href="css/iconvault-preview.css" />
+    <style>
+        li {
+            list-style-type: none;
+        }
+    </style>
+</head>
+<body>
+
+<input id="station" type="text" placeholder="station code ...">
+<input type="button" id="btn" value="Get weather"/>
+
+<ul id="icons">
+
+</ul>
+<!--
+<ul>
+    <li class="basecloud"></li>
+    <li class="icon-drizzle"></li>
+</ul>
+
+-->
+
+
+<script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+<script type="text/javascript">
+
+    $(document).ready(function(){
+        $("#btn").click(function(){
+            $.get('/station/' + $("#station").val() + '?format=simple', function(data){
+                console.log(data);
+
+                $('#resp').text(JSON.stringify(data));
+
+                var icons = $("#icons");
+                icons.empty();
+                $.each(data.icons, function(idx, ic){
+                    icons.append('<li class="icon-' + ic + '"></li>');
+                });
+            });
+        });
+
+    });
+
+</script>
+</body>
+</html>
