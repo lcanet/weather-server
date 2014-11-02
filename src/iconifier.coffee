@@ -33,14 +33,13 @@ condType = (metar, types...) ->
 iconify = (metar, station) ->
   icon = ''
 
+  date = moment(metar.date)
   localTime = moment(metar.date).tz(station.tz)
   times = SunCalc.getTimes metar.date, station.lat, station.lon
   dawn = moment(times.dawn)
   dusk = moment(times.dusk)
 
-  isDay = (localTime.hour() > dawn.hour() || (localTime.hour() == dawn.hour() && localTime.minutes() > dawn.minutes())) &&
-    (localTime.hour() < dusk.hour() || (localTime.hour() == dusk.hour() && localTime.minutes() <= dusk.minutes()))
-
+  isDay = dawn.isBefore(date) && dusk.isAfter(date)
   isNight = !isDay
   cloud = cloudOktas metar
   wind = metar.wind?.speed
