@@ -29,60 +29,146 @@ condType = (metar, types...) ->
   !!_.find metar.conditions, (cond) -> _.contains(types, cond.type)
 
 iconify = (metar, station) ->
-  icons = []
+  icon = ''
 
   localHour = moment(metar.date).tz(station.tz).hour()
   isNight = localHour >= 22 || localHour < 6
   isDay = !isNight
   cloud = cloudOktas metar
+  wind = metar.wind?.speed
+  gust = metar.wind?.gust
 
-  if isNight and 0 < cloud < 8
-    icons.push 'night'
+  # ### CLOUD BASIC
 
-  if isDay and 0 < cloud < 8
-    icons.push 'sunny'
+  if isDay
+    if cloud is 0
+      icon = 'day-sunny'
+    else if 0 < cloud < 8
+      icon = 'day-cloudy'
+    else
+      icon = 'cloudy'
 
-  if metar.temperature <= 1 or condDesc(metar, 'FZ')
-    icons.push 'frosty'
+  if isNight
+    if cloud is 0
+      icon = 'night-clear'
+    else
+      icon = 'night-cloudy'
 
-  if condType(metar, 'RA', 'DZ', 'UP') and condDesc(metar, 'BL', 'SH')
-    icons.push 'showers'
+  # ### WINDS
 
-  if 0 < cloud <  8
-    icons.push 'basecloud'
+  if wind > 20
+    if cloud is 8
+      icon = 'cloudy-windy'
+    else if isDay and cloud > 0
+      icon = 'day-cloud-windy'
+    else if isNight and cloud > 0
+      icon = 'night-cloudy-windy'
 
-  if cloud is 8
-    icons.push 'cloud'
+  if gust > 30
+    if cloud is 8
+      icon = 'cloudy-gusts'
+    else if isDay and cloud > 0
+      icon = 'day-cloud-gusts'
+    else if isNight and cloud > 0
+      icon = 'night-cloudy-gusts'
 
-  # todo empty desc
-  if condType(metar, 'RA', 'UP') and condDesc(metar, 'MI', 'PR', 'BC', 'DR')
-    icons.push 'rainy'
 
-  if condType(metar, 'BR', 'FG', 'HZ')
-    icons.push 'mist'
+  # ### CONDITION
 
-  if condType(metar, 'DZ')
-    icons.push 'drizzle'
-
-  if condType(metar, 'SN', 'SG', 'IC', 'PL')
-    icons.push 'snowy'
-
-  if isNight and cloud is 0
-    icons.push 'moon'
-
+  # Hail
   if condType(metar, 'GR', 'GS')
-    icons.push 'hail'
+    if cloud is 8
+      icon = 'hail'
+    else if isDay
+      icon = 'day-hail'
+    else
+      icon = 'night-hail'
 
-  if isDay and cloud is 0
-    icons.push 'sun'
+  # Fog
+  if condType(metar, 'FG', 'BR', 'HZ')
+    if cloud is 8
+      icon = 'fog'
+    else if isDay
+      icon = 'day-fog'
+    else
+      icon = 'night-fog'
 
-  if condDesc(metar, 'TS')
-    icons.push 'thunder'
+  # Rain
+  if condType(metar, 'RA', 'DZ', 'UP')
+    if cloud is 8
+      if wind < 15
+        icon = 'rain-wind'
+      else
+        icon = 'rain'
+    else if isDay
+      if wind < 15
+        icon = 'day-rain-wind'
+      else
+      icon = 'day-rain'
+    else
+      if wind < 15
+        icon = 'night-rain-wind'
+      else
+      icon = 'night-rain'
 
-  if metar.wind?.speed > 20
-    icons.push 'windy'
+  # Snow
+  if condType(metar ,'SN', 'SG', 'IC', 'PL')
+    if cloud is 8
+      icon = 'snow'
+    else if isDay
+      icon = 'day-snow'
+    else
+      icon = 'night-snow'
 
-  icons
+  # ### CONDITION TYPES
+
+  thunderstorm = condDesc(metar, 'TS') or condType(metar, 'TS')
+  showers = condDesc(metar, 'SH') or condType(metar, 'SH')
+
+  if thunderstorm && showers
+    if cloud is 8
+      icon = 'storm-showers'
+    else if isDay
+      icon = 'day-storm-showers'
+    else
+      icon = 'night-storm-showers'
+  else if thunderstorm
+    if cloud is 8
+      icon = 'thunderstorm'
+    else if isDay
+      icon = 'day-thunderstorm'
+    else
+      icon = 'night-thunderstorm'
+  else if showers
+    if cloud is 8
+      icon = 'showers'
+    else if isDay
+      icon = 'day-showers'
+    else
+      icon = 'night-showers'
+
+  icon
+
 
 
 module.exports = iconify
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

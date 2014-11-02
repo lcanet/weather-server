@@ -34,7 +34,7 @@ toSimple = (source) ->
   dest = makeBasic source
   if source.last
     copy source.last, dest, ['temperature', 'wind']
-    dest.icons = iconifier source.last, source
+    dest.icon = iconifier source.last, source
   dest
 
 

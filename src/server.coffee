@@ -7,6 +7,7 @@ Backend = require('./backend').Backend
 Poller = require('./poller').Poller
 transformers = require './transformers'
 responseTime = require './responseTime'
+metar = require './metar'
 
 # Logging
 winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
@@ -109,6 +110,13 @@ app.get '/poll', (req,res) ->
   poller.pollDir (err, res) ->
     if err
       winston.error 'Error while polling :' + err
+
+app.get '/parse', (req,res) ->
+  reqMetar = req.query.metar
+  decoded = metar.decode reqMetar
+  station = code: metar.icao, last: decoded, tz: 'GMT'
+  res.jsonp transformers.transform(station, req.query.format)
+
 
 # run server
 

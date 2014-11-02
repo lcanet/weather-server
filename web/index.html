@@ -3,28 +3,26 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>Weather</title>
-    <link rel="stylesheet" href="css/iconvault-preview.css" />
+    <link rel="stylesheet" href="css/weather-icons.css" />
     <style>
-        li {
-            list-style-type: none;
+        .result {
+            margin-top: 20px;
+            font-size: 28px;
+            height: 35px;
         }
     </style>
 </head>
 <body>
 
-<input id="station" type="text" placeholder="station code ...">
+<input id="station" type="text" placeholder="station code ..." value="LFPG">
 <input type="button" id="btn" value="Get weather"/>
 
-<ul id="icons">
+<div class="result">
+    <i id="icon-container">
+    </i>
+    <span id="text"></span>
 
-</ul>
-<!--
-<ul>
-    <li class="basecloud"></li>
-    <li class="icon-drizzle"></li>
-</ul>
-
--->
+</div>
 
 
 <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
@@ -35,13 +33,8 @@
             $.get('/station/' + $("#station").val() + '?format=simple', function(data){
                 console.log(data);
 
-                $('#resp').text(JSON.stringify(data));
-
-                var icons = $("#icons");
-                icons.empty();
-                $.each(data.icons, function(idx, ic){
-                    icons.append('<li class="icon-' + ic + '"></li>');
-                });
+                $('#icon-container')[0].className = 'wi wi-' + data.icon;
+                $("#text").text(data.city + ' (' + data.name + ') - ' + data.temperature + '°C')
             });
         });
 
