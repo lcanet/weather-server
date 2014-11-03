@@ -1,14 +1,20 @@
 _ = require 'lodash'
 winston = require 'winston'
-iconifier = require './iconifier'
 moment = require('moment')
 momentTz = require('moment-timezone')
+SunCalc = require 'suncalc'
+iconifier = require './iconifier'
 
 copy = (source, dest, properties) ->
   for key in properties
     if source[key]
       dest[key] = source[key]
   dest
+
+appendSunCalcs = (x) ->
+  date = moment(new Date()).tz('GMT')
+  x.sunTimes = SunCalc.getTimes date, x.lat, x.lon
+  x
 
 makeBasic = (source) ->
   dest = copy source, {}, ['code', 'lat', 'lon', 'name', 'city']
@@ -30,6 +36,10 @@ toBareMetar = (source) ->
     dest.metar = source.last.metar
   dest
 
+toBareSun = (source) ->
+  x = toBare source
+  appendSunCalcs x
+
 toSimple = (source) ->
   dest = makeBasic source
   if source.last
@@ -37,6 +47,8 @@ toSimple = (source) ->
     dest.icon = iconifier source.last, source
   dest
 
+toClassic = (source) ->
+  appendSunCalcs source
 
 transform = (source, destFormat='bare') ->
   if _.isArray(source)
@@ -45,12 +57,14 @@ transform = (source, destFormat='bare') ->
   else
     if destFormat is 'bare'
       toBare source
+    else if destFormat is 'bareSun'
+      toBareSun source
     else if destFormat is 'bareMetar'
       toBareMetar source
     else if destFormat is 'simple'
       toSimple source
     else if destFormat is 'classic'
-      source
+      toClassic source
     else
       winston.log 'warn', 'Unknown format to transform %s', destFormat
       source
