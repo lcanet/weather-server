@@ -162,7 +162,7 @@ class Poller
         if (err)
           winston.error 'Polling failed : ' + err
 
-    new cronJob('00 3 * * * *', pollHandler).start()
+    new cronJob('00 20 * * * *', pollHandler).start()
     winston.info 'Poller started'
 
 exports.Poller = Poller
