@@ -8,6 +8,7 @@ Poller = require('./poller').Poller
 transformers = require './transformers'
 responseTime = require './responseTime'
 metar = require './metar'
+get = require('getobject').get
 
 # Logging
 winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
@@ -41,6 +42,11 @@ app.use '/web', express.static('web')
 app.get '/', (req,res) ->
   res.send 'Weather Server'
 
+### ---------------------------------------------------
+Weather at a location
+
+###
+
 app.get '/weather', (req,res) ->
   lat = parseFloat(req.query.lat)
   lon = parseFloat(req.query.lon)
@@ -72,6 +78,11 @@ app.get '/weather', (req,res) ->
 
           db.close()
 
+### ---------------------------------------------------
+Weather at one station
+
+###
+
 
 app.get '/station/:code', (req,res) ->
   winston.log 'debug', 'Request station %s', req.params.code
@@ -89,6 +100,12 @@ app.get '/station/:code', (req,res) ->
           res.status(404).send('Station not found')
         db.close()
 
+### ---------------------------------------------------
+  History of one statin
+
+###
+
+
 app.get '/station/:code/history', (req,res) ->
   backend.withConnection (err, db) ->
     if err
@@ -102,6 +119,56 @@ app.get '/station/:code/history', (req,res) ->
         else
           res.jsonp(transformers.transformHistory(docs, req.query.format))
         db.close()
+
+
+### ---------------------------------------------------
+Extract data to CSV, according to one measure
+
+###
+
+
+measureOfDoc = (doc, measure) ->
+  if doc.last
+    get doc.last, measure
+  else
+    null
+
+app.get '/data', (req, res) ->
+  extent = _.map req.query.extent?.split(','), parseFloat
+  measure = req.query.measure
+  # TODO: maxAge
+
+  if extent.length isnt 4
+    return sendError res, 'Invalid extent'
+  else if !measure
+    return sendError res, 'Invalid measure'
+
+  backend.withConnection (err, db) ->
+    if err
+      winston.error 'Cannot connect to mongo: ' + err
+      return sendError res
+
+    query = $and: [ {lat: { $gte: extent[0] }}, { lat: { $lt: extent[2]}}, {lon: { $gte: extent[1]}}, { lon: { $lt: extent[3]}}  ]
+
+    lines = []
+    lines.push ['lat', 'lon', 'code', measure].join(',')
+
+    db.collection('stations').find(query).each (err, doc) ->
+      if err
+        sendError res, err
+      else if doc is null
+        res.set 'Content-Type', 'text/csv'
+        res.send lines.join('\r\n');
+        db.close()
+      else
+        measureVal = measureOfDoc doc, measure
+        if measureVal isnt null
+          lines.push  [ doc.lat, doc.lon, doc.code, measureVal].join(',')
+
+### ---------------------------------------------------
+  Other administratives endpoints
+
+###
 
 
 app.get '/poll', (req,res) ->
