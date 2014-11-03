@@ -64,7 +64,12 @@ transformGeoNear = (source, destFormat='bare') ->
 transformGeoNears = (source, destFormat='bare', limit=1) ->
   _.map source, (item) -> transformGeoNear(item, destFormat)
 
+transformHistory = (source, destFormat='bare') ->
+  # no special format, just remove special fields
+  _.map source, (x) ->
+    _.omit x, '_id'
 
 exports.transform = transform
 exports.transformGeoNear = transformGeoNear
 exports.transformGeoNears = transformGeoNears
+exports.transformHistory = transformHistory

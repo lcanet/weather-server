@@ -100,7 +100,7 @@ app.get '/station/:code/history', (req,res) ->
         if err
           sendError res, err
         else
-          res.jsonp(transformers.transform(docs, req.query.format))
+          res.jsonp(transformers.transformHistory(docs, req.query.format))
         db.close()
 
 
