@@ -67,7 +67,7 @@ iconify = (metar, station) ->
     if cloud is 8
       icon = 'cloudy-windy'
     else if isDay and cloud > 0
-      icon = 'day-cloud-windy'
+      icon = 'day-cloudy-windy'
     else if isNight and cloud > 0
       icon = 'night-cloudy-windy'
 
@@ -75,7 +75,7 @@ iconify = (metar, station) ->
     if cloud is 8
       icon = 'cloudy-gusts'
     else if isDay and cloud > 0
-      icon = 'day-cloud-gusts'
+      icon = 'day-cloudy-gusts'
     else if isNight and cloud > 0
       icon = 'night-cloudy-gusts'
 
