@@ -103,11 +103,11 @@ describe "METAR Decoder", ->
     expect(r.conditions[0].intensity).toBe '-'
 
   it 'Should parse complex conditions', ->
-    r = metar.decode 'RJTT 011000Z 01008KT 5000 -RA BR FEW005 BKN006 BKN020 17/16 Q1013 TEMPO 4000 -SHRA BR'
-    expect(r.conditions.length).toBe 4
-    expect(r.conditions[2].intensity).toBe '-'
-    expect(r.conditions[2].descriptor).toBe 'SH'
-    expect(r.conditions[2].label).toBe 'light showers of rain'
+    r = metar.decode 'RJTT 011000Z 01008KT 5000 -SHRA BR FEW005 BKN006 BKN020 17/16 Q1013'
+    expect(r.conditions.length).toBe 2
+    expect(r.conditions[0].intensity).toBe '-'
+    expect(r.conditions[0].descriptor).toBe 'SH'
+    expect(r.conditions[0].label).toBe 'light showers of rain'
 
   it 'Should read altimeter settings', ->
     r = metar.decode 'K04W 010345Z AUTO 00000KT 10SM CLR M05/M07 A3048 RMK AO2'
@@ -118,3 +118,8 @@ describe "METAR Decoder", ->
   it 'Should read altimeter settings in Q', ->
     r = metar.decode 'K04W 010345Z AUTO 00000KT 10SM CLR M05/M07 Q1013 RMK AO2'
     expect(r.altimeter).toBeCloseTo 1013
+
+  it 'Should ignore values in RMK/TEMPO sections', ->
+    r = metar.decode 'PADU 040656Z AUTO 34018G27KT 8SM -RA SCT028 BKN033 OVC044 04/M01 A2992 RMK AO2 PK WND 35030/0557 RAE37B54UPB07E12 SLP139 P0000 T00441011'
+    expect(r.temperature).toBe 4
+    expect(r.dewPoint).toBe -1

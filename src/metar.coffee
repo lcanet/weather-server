@@ -94,6 +94,9 @@ class MetarParser
     @result
 
   parseToken: (token, index) ->
+    # skip all tokens in remarks or temporary sections, the parsing is finished
+    if @inRemarks or @inTempo
+      return
 
     if index is 0
       @result.icao = token
