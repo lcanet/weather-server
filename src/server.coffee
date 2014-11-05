@@ -8,7 +8,7 @@ Poller = require('./poller').Poller
 transformers = require './transformers'
 responseTime = require './responseTime'
 metar = require './metar'
-get = require('getobject').get
+DataExtractor = require('./dataExtractor').DataExtractor
 
 # Logging
 winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
@@ -126,44 +126,8 @@ Extract data to CSV, according to one measure
 
 ###
 
+new DataExtractor(backend).registerRoutes(app)
 
-measureOfDoc = (doc, measure) ->
-  if doc.last
-    get doc.last, measure
-  else
-    null
-
-app.get '/data', (req, res) ->
-  extent = _.map req.query.extent?.split(','), parseFloat
-  measure = req.query.measure
-  # TODO: maxAge
-
-  if extent.length isnt 4
-    return sendError res, 'Invalid extent'
-  else if !measure
-    return sendError res, 'Invalid measure'
-
-  backend.withConnection (err, db) ->
-    if err
-      winston.error 'Cannot connect to mongo: ' + err
-      return sendError res
-
-    query = $and: [ {lat: { $gte: extent[0] }}, { lat: { $lt: extent[2]}}, {lon: { $gte: extent[1]}}, { lon: { $lt: extent[3]}}  ]
-
-    lines = []
-    lines.push ['lat', 'lon', 'code', measure].join(',')
-
-    db.collection('stations').find(query).each (err, doc) ->
-      if err
-        sendError res, err
-      else if doc is null
-        res.set 'Content-Type', 'text/csv'
-        res.send lines.join('\r\n');
-        db.close()
-      else
-        measureVal = measureOfDoc doc, measure
-        if measureVal isnt null
-          lines.push  [ doc.lat, doc.lon, doc.code, measureVal].join(',')
 
 ### ---------------------------------------------------
   Other administratives endpoints
