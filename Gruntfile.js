@@ -13,7 +13,8 @@ module.exports = function(grunt) {
                     'src/server.js': 'src/server.coffee',
                     'src/transformers.js': 'src/transformers.coffee',
                     'src/responseTime.js': 'src/responseTime.coffee',
-                    'src/iconifier.js': 'src/iconifier.coffee'
+                    'src/iconifier.js': 'src/iconifier.coffee',
+                    'src/dataExtractor.js': 'src/dataExtractor.coffee'
 
                 }
             }

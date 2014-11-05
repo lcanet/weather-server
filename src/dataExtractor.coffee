@@ -47,6 +47,7 @@ class CSVDataProducer extends Readable
           return @endError(err) if err
           @currentStation = doc
           @cursor = db.collection('history').find({icao: @params.code})
+          @cursor.sort [['date', 1]]
           @push 'lat,lon,code,city,time,measure\r\n'
 
   handleRow: (doc) ->
