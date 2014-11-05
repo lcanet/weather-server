@@ -15,13 +15,15 @@
         "winston-logentries": "1.0.1",
         "moment-timezone": "0.2.4",
         "suncalc": "1.6.0",
-        "getobject": "0.1.0"
+        "getobject": "0.1.0",
+        "heatmap": "0.0.5"
 
     },
     "devDependencies": {
         "jasmine-node": "*",
         "grunt": "0.4.5",
         "grunt-contrib-coffee": "0.12.0"
-    }
+    },
+    "main": "src/server.js"
 
 }
