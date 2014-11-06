@@ -9,6 +9,7 @@ class CSVDataProducer extends Readable
   constructor: (@backend, @params, opt) ->
     Readable.call this, opt
     @cursor = null
+    @nbLines = 0
 
   _read: ->
     if @cursor is null
@@ -19,7 +20,12 @@ class CSVDataProducer extends Readable
   fetchNextRow: () ->
     @cursor.nextObject (err, doc) =>
       return @endError(err) if err
-      @handleRow doc
+      if doc is null
+        @push null
+        @db.close()
+        winston.log 'info', 'Done extraction of %d lines', @nbLines
+      else
+        @handleRow doc
 
   measureOf: (obj, measure) ->
     if obj
@@ -54,22 +60,20 @@ class CSVDataProducer extends Readable
           @push 'lat,lon,code,city,time,measure\r\n'
 
   handleRow: (doc) ->
-    if doc is null
-      @push null
-      @db.close()
-    else
-      if @params.filter is 'space'
-        measureVal = @measureOf doc.last, @params.measure
-        if measureVal isnt null
-          @push [doc.lat, doc.lon, doc.code, doc.city, measureVal].join(',') + '\r\n'
-        else
-          @fetchNextRow()
-      else if @params.filter is 'time'
-        measureVal = @measureOf doc, @params.measure
-        if measureVal isnt null
-          @push [@currentStation.lat, @currentStation.lon, @currentStation.code, @currentStation.city, doc.date.getTime(), measureVal].join(',') + '\r\n'
-        else
-          @fetchNextRow()
+    if @params.filter is 'space'
+      measureVal = @measureOf doc.last, @params.measure
+      if measureVal isnt null
+        @push [doc.lat, doc.lon, doc.code, doc.city, measureVal].join(',') + '\r\n'
+        @nbLines++
+      else
+        @fetchNextRow()
+    else if @params.filter is 'time'
+      measureVal = @measureOf doc, @params.measure
+      if measureVal isnt null
+        @push [@currentStation.lat, @currentStation.lon, @currentStation.code, @currentStation.city, doc.date.getTime(), measureVal].join(',') + '\r\n'
+        @nbLines++
+      else
+        @fetchNextRow()
 
 
 
@@ -113,6 +117,7 @@ class DataExtractor
         res.status(400).send paramsValidation
       else
         producer = new CSVDataProducer(@backend, params)
+        winston.log 'info', 'Began extraction parameters: ' + util.inspect(params).replace(/[\r\n]/g, ' ')
         producer.on 'error', (err) ->
           winston.log 'info', 'Data production error, closing request'
           res.end()
