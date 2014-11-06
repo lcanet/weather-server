@@ -14,9 +14,12 @@ class CSVDataProducer extends Readable
     if @cursor is null
       @initCursors()
     else
-      @cursor.nextObject (err, doc) =>
-        return @endError(err) if err
-        @handleRow doc
+      @fetchNextRow()
+
+  fetchNextRow: () ->
+    @cursor.nextObject (err, doc) =>
+      return @endError(err) if err
+      @handleRow doc
 
   measureOf: (obj, measure) ->
     if obj
@@ -59,10 +62,14 @@ class CSVDataProducer extends Readable
         measureVal = @measureOf doc.last, @params.measure
         if measureVal isnt null
           @push [doc.lat, doc.lon, doc.code, doc.city, measureVal].join(',') + '\r\n'
+        else
+          @fetchNextRow()
       else if @params.filter is 'time'
         measureVal = @measureOf doc, @params.measure
         if measureVal isnt null
           @push [@currentStation.lat, @currentStation.lon, @currentStation.code, @currentStation.city, doc.date.getTime(), measureVal].join(',') + '\r\n'
+        else
+          @fetchNextRow()
 
 
 
