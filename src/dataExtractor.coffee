@@ -56,7 +56,7 @@ class CSVDataProducer extends Readable
       @db.close()
     else
       if @params.filter is 'space'
-        measureVal = @measureOfDoc doc.last, @params.measure
+        measureVal = @measureOf doc.last, @params.measure
         if measureVal isnt null
           @push [doc.lat, doc.lon, doc.code, doc.city, measureVal].join(',') + '\r\n'
       else if @params.filter is 'time'
