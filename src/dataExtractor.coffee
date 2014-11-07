@@ -59,18 +59,24 @@ class CSVDataProducer extends Readable
           @cursor.sort [['date', 1]]
           @push 'lat,lon,code,city,time,measure\r\n'
 
+  escape: (x) ->
+    if !_.isString(x) or x.indexOf(',') is -1 then x else '"' + x + '"'
+
+  pushRow: (values...) ->
+    @push (_.map values, @escape).join(',') + '\r\n'
+
   handleRow: (doc) ->
     if @params.filter is 'space'
       measureVal = @measureOf doc.last, @params.measure
       if measureVal isnt null
-        @push [doc.lat, doc.lon, doc.code, doc.city, measureVal].join(',') + '\r\n'
+        @pushRow doc.lat, doc.lon, doc.code, doc.city, measureVal
         @nbLines++
       else
         @fetchNextRow()
     else if @params.filter is 'time'
       measureVal = @measureOf doc, @params.measure
       if measureVal isnt null
-        @push [@currentStation.lat, @currentStation.lon, @currentStation.code, @currentStation.city, doc.date.getTime(), measureVal].join(',') + '\r\n'
+        @pushRow @currentStation.lat, @currentStation.lon, @currentStation.code, @currentStation.city, doc.date.getTime(), measureVal
         @nbLines++
       else
         @fetchNextRow()
