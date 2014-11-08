@@ -16,7 +16,10 @@
         "moment-timezone": "0.2.4",
         "suncalc": "1.6.0",
         "getobject": "0.1.0",
-        "heatmap": "0.0.5"
+        "mathjs": "1.0.1",
+        "canvas": "1.1.6",
+        "tinygradient": "0.2.0",
+        "color": "0.7.3"
 
     },
     "devDependencies": {

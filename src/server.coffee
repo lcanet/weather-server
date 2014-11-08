@@ -9,6 +9,7 @@ transformers = require './transformers'
 responseTime = require './responseTime'
 metar = require './metar'
 DataExtractor = require('./dataExtractor').DataExtractor
+MapTileProducer = require('./tile').MapTileProducer
 
 # Logging
 winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
@@ -128,6 +129,13 @@ Extract data to CSV, according to one measure
 
 new DataExtractor(backend).registerRoutes(app)
 
+
+### ---------------------------------------------------
+Produces map tiles
+
+###
+
+new MapTileProducer(backend).registerRoutes(app);
 
 ### ---------------------------------------------------
   Other administratives endpoints
