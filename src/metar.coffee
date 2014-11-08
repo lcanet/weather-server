@@ -126,6 +126,8 @@ class MetarParser
       @parseVariableWindDirection(match)
     else if token.match(/^5[0-9]{5}$/)
       @parseTurbulence(token)
+    else if token.match(/^WS$/) and @result.wind isnt null
+      @result.wind.shear = true
     else if token is '1'
       @visibilityCarry = 1
     else if token is '2'

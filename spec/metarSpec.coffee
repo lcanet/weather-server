@@ -134,3 +134,6 @@ describe "METAR Decoder", ->
     expect(r.wind.turbulence.base).toBe 1
     expect(r.wind.turbulence.thickness).toBe 9
 
+  it 'Should see wind shear', ->
+    r = metar.decode 'GCLA 311930Z 02014KT 9999 SCT025 BKN050 23/18 Q1018 WS ALL RWY'
+    expect(r.wind.shear).toBe true
