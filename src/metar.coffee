@@ -78,6 +78,19 @@ CLOUD_COLORS = {
 
 }
 
+TURBULENCE_TYPES = [
+  { intensity: 'none' },
+  { intensity: 'light' }
+  { intensity: 'moderate', weather: 'clear', frequency: 'occasional' },
+  { intensity: 'moderate', weather: 'clear', frequency: 'frequent' },
+  { intensity: 'moderate', weather: 'cloud', frequency: 'occasional' },
+  { intensity: 'moderate', weather: 'cloud', frequency: 'frequent' },
+  { intensity: 'severe', weather: 'clear', frequency: 'occasional' },
+  { intensity: 'severe', weather: 'clear', frequency: 'frequent' },
+  { intensity: 'severe', weather: 'cloud', frequency: 'occasional' },
+  { intensity: 'severe', weather: 'cloud', frequency: 'frequent' }
+]
+
 CLOUD_COLORS_REGEX = '^(' + _.keys(CLOUD_COLORS).join('|') + ')$';
 
 class MetarParser
@@ -111,6 +124,8 @@ class MetarParser
       @parseWind(match)
     else if match = token.match(/^([0-9]{3})V([0-9]{3})$/)
       @parseVariableWindDirection(match)
+    else if token.match(/^5[0-9]{5}$/)
+      @parseTurbulence(token)
     else if token is '1'
       @visibilityCarry = 1
     else if token is '2'
@@ -175,6 +190,13 @@ class MetarParser
     if (!@result.wind)
       @result.wind = {}
     @result.wind.variableDirection = from: parseInt(match[1]), to: parseInt(match[2])
+
+  parseTurbulence: (token) ->
+    if @result.wind
+      type = parseInt(token[1])
+      @result.wind.turbulence = _.extend {}, TURBULENCE_TYPES[type]
+      @result.wind.turbulence.base = parseInt token[2..4]
+      @result.wind.turbulence.thickness = parseInt token.charAt(5)
 
   parseVisibility: (match) ->
       visibFrac = parseInt(match[1])

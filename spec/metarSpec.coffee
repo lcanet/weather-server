@@ -123,3 +123,14 @@ describe "METAR Decoder", ->
     r = metar.decode 'PADU 040656Z AUTO 34018G27KT 8SM -RA SCT028 BKN033 OVC044 04/M01 A2992 RMK AO2 PK WND 35030/0557 RAE37B54UPB07E12 SLP139 P0000 T00441011'
     expect(r.temperature).toBe 4
     expect(r.dewPoint).toBe -1
+
+  it 'Should parse turbulence layers', ->
+    r = metar.decode 'KNKT 010554Z COR 10003KT 10SM CLR 11/07 A2974 SLP066 T01060067 10144 20100 560019'
+    expect(r.wind.speed).toBe(3)
+    expect(r.wind.turbulence).not.toBeNull()
+    expect(r.wind.turbulence.intensity).toBe 'severe'
+    expect(r.wind.turbulence.weather).toBe 'clear'
+    expect(r.wind.turbulence.frequency).toBe 'occasional'
+    expect(r.wind.turbulence.base).toBe 1
+    expect(r.wind.turbulence.thickness).toBe 9
+
