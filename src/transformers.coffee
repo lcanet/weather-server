@@ -26,8 +26,9 @@ makeBasic = (source) ->
 
 toBare = (source) ->
   dest = makeBasic source
+  dest.altitude = source.alt
   if source.last
-    copy source.last, dest, ['wind', 'visibility', 'clouds', 'temperature', 'dewpoint', 'altimeter', 'cavok', 'nosig', 'conditions', 'clear', 'visibilityInDirection']
+    copy source.last, dest, ['wind', 'visibility', 'clouds', 'temperature', 'dewPoint', 'altimeter', 'cavok', 'nosig', 'conditions', 'clear', 'visibilityInDirection']
   dest
 
 toBareMetar = (source) ->
