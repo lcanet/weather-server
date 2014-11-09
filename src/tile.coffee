@@ -120,7 +120,7 @@ class MapTileProducer
     tileOriginLatLon = @projection.tileToLatLon tile
     tileMaxLatLon = @projection.tileToLatLon { x: tile.x + 1, y: tile.y + 1, z: tile.z }
     tileOriginPix = @projection.latLonToPoint tileOriginLatLon, tile.z
-    gridSize = 8
+    gridSize = tile.grid || 8
 
     canvas = new Canvas 256, 256
     ctx = canvas.getContext '2d'
@@ -149,6 +149,8 @@ class MapTileProducer
   registerRoutes: (app) ->
     app.get '/map/temperature/:z/:x/:y.png', (req, res) =>
       tile = x:parseInt(req.params.x), y:parseInt(req.params.y), z:parseInt(req.params.z)
+      tile.grid = parseInt(req.query.grid) if req.query.grid
+
       @produceMap tile, (err, pngBuf) =>
         return @sendError(res, err) if err
 
