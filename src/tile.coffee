@@ -115,12 +115,11 @@ class MapTileProducer
           ctx.fillRect i*gridWidth, j*gridWidth, gridWidth, gridWidth
 
 
-  produceMap: (tile, callback)  ->
+  produceMap: (tile, gridSize, drawStations, callback)  ->
 
     tileOriginLatLon = @projection.tileToLatLon tile
     tileMaxLatLon = @projection.tileToLatLon { x: tile.x + 1, y: tile.y + 1, z: tile.z }
     tileOriginPix = @projection.latLonToPoint tileOriginLatLon, tile.z
-    gridSize = tile.grid || 8
 
     canvas = new Canvas 256, 256
     ctx = canvas.getContext '2d'
@@ -135,10 +134,13 @@ class MapTileProducer
       db.collection('stations').find(query).toArray (err, docs) =>
         db.close()
         return callback err if err
-        # @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs
-        grid = @fillGrid docs, gridSize, tileOriginPix, tile.z
-        grid = @meanGrid(grid)
+
+        # draw grid
+        grid = @meanGrid @fillGrid(docs, gridSize, tileOriginPix, tile.z)
         @drawGrid(ctx, gridSize, grid)
+
+        # draw station locations
+        @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs if drawStations
 
         callback null, canvas.toBuffer()
 
@@ -149,9 +151,10 @@ class MapTileProducer
   registerRoutes: (app) ->
     app.get '/map/temperature/:z/:x/:y.png', (req, res) =>
       tile = x:parseInt(req.params.x), y:parseInt(req.params.y), z:parseInt(req.params.z)
-      tile.grid = parseInt(req.query.grid) if req.query.grid
+      gridSize = if req.query.grid then parseInt(req.query.grid) else 8
+      stations = !!req.query.stations
 
-      @produceMap tile, (err, pngBuf) =>
+      @produceMap tile, gridSize, stations, (err, pngBuf) =>
         return @sendError(res, err) if err
 
         res.set 'Content-Type', 'image/png'
