@@ -24,7 +24,7 @@
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    L.tileLayer('/map/temperature/{z}/{x}/{y}.png?stations=1&d=' + new Date().getTime(), {
+    L.tileLayer('/map/temperature/{z}/{x}/{y}.png?alpha=0.5&d=' + new Date().getTime(), {
         attribution: 'weather-api.lc6.net'
     }).addTo(map);
 
