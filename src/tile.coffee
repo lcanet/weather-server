@@ -54,8 +54,8 @@ class MapTileProducer
   constructor: (@backend) ->
     @projection = new ProjectionUtils()
     @gradient = gradient('#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8b00ff').hsv(256).reverse()
-    @minValue = -40
-    @maxValue = 40
+    @minValue = -20
+    @maxValue = 50
 
   DEFAULT_GRID_SIZE: 8
   DEFAULT_ALPHA: 0.5
@@ -94,10 +94,17 @@ class MapTileProducer
           color = @gradient[ Math.floor(a * val + b) ]
           color.setAlpha alpha
           colorStr = color.toRgbString()
-
           ctx.fillStyle = colorStr
           ctx.fillRect i*gridWidth, j*gridWidth, gridWidth, gridWidth
 
+
+  applyWatermark: (ctx) ->
+    ctx.translate 128, 128
+    ctx.rotate Math.PI / 4
+    ctx.font = 'italic 12px Verdana'
+    ctx.fillStyle = '#D0D0D080'
+    ctx.textAlign = 'center'
+    ctx.fillText('weather-api.lc6.net', 0, 0)
 
   produceMap: (tile, gridSize, drawStations, alpha, callback)  ->
 
@@ -127,6 +134,9 @@ class MapTileProducer
 
         # draw station locations
         @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs if drawStations
+
+        # finally apply watermarks
+        # @applyWatermark ctx
 
         callback null, canvas.toBuffer()
 
