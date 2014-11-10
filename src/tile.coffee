@@ -4,7 +4,7 @@ mathjs = require 'mathjs'
 _ = require 'lodash'
 color = require 'color'
 gradient = require 'tinygradient'
-
+MeasureGrid = require('./grid').MeasureGrid
 
 class ProjectionUtils
   constructor: ->
@@ -49,6 +49,7 @@ class ProjectionUtils
     return x:pt.x - tileOrigin.x, y:pt.y - tileOrigin.y
 
 
+
 class MapTileProducer
   constructor: (@backend) ->
     @projection = new ProjectionUtils()
@@ -59,46 +60,26 @@ class MapTileProducer
   DEFAULT_GRID_SIZE: 8
   DEFAULT_ALPHA: 0.5
 
-  createGrid: (n) ->
-    grid = []
-    for i in [0...n]
-      line = []
-      for j in [0...n]
-        line.push []
-      grid.push line
-    grid
-
-  fillGrid: (docs, n, tileOriginPix, zoom) ->
+  createGrid: (docs, n, tileOriginPix, zoom) ->
     # create grid
-    grid = @createGrid n
+    grid = new MeasureGrid(n)
     # add docs
-    gridWidth = 256 / n
+    gridWidth = grid.gridWidth()
 
     for doc in docs
       docPix = @projection.latLonToPointRelative {lat: doc.lat, lon: doc.lon}, tileOriginPix, zoom
       docGridX = Math.floor(docPix.x / gridWidth)
       docGridY = Math.floor(docPix.y / gridWidth)
-      if doc.last and !_.isUndefined(doc.last.temperature)
-        grid[docGridX][docGridY].push doc.last.temperature
+      grid.addValue(docGridX, docGridY, doc.last.temperature) if doc.last
     grid
 
-  average: (tab) ->
-    NaN if tab.length is 0
-    (_.reduce tab, ((sum, x) -> sum + x), 0) / tab.length
-
-  meanGrid: (grid) ->
-    for i in [0...grid.length]
-      for j in [0...grid[i].length]
-        grid[i][j] = @average(grid[i][j])
-
   drawPoint: (ctx, tileOriginPix, zoom, doc) ->
-
     docPix = @projection.latLonToPointRelative {lat: doc.lat, lon: doc.lon}, tileOriginPix, zoom
     ctx.fillStyle = "#FF0000"
     ctx.fillRect docPix.x-3, docPix.y-3, 6, 6
 
   drawGrid: (ctx, grid, n, alpha) ->
-    gridWidth = 256 / n
+    gridWidth = grid.gridWidth()
 
     a = 256 / (@maxValue - @minValue)
     b = -@minValue * a
@@ -106,7 +87,7 @@ class MapTileProducer
     # fill canvas
     for i in [0...n]
       for j in [0...n]
-        val = grid[i][j]
+        val = grid.valueAt(i, j)
         if !isNaN(val)
           val = @minValue if val < @minValue
           val = @maxValue if val > @maxValue
@@ -139,7 +120,9 @@ class MapTileProducer
         return callback err if err
 
         # draw grid
-        grid = @meanGrid @fillGrid(docs, gridSize, tileOriginPix, tile.z)
+        grid = @createGrid(docs, gridSize, tileOriginPix, tile.z)
+        grid.meanValues()
+        grid.interpolateCells()
         @drawGrid(ctx, grid, gridSize, alpha)
 
         # draw station locations

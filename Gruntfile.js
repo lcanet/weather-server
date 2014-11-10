@@ -15,7 +15,8 @@ module.exports = function(grunt) {
                     'src/responseTime.js': 'src/responseTime.coffee',
                     'src/iconifier.js': 'src/iconifier.coffee',
                     'src/dataExtractor.js': 'src/dataExtractor.coffee',
-                    'src/tile.js': 'src/tile.coffee'
+                    'src/tile.js': 'src/tile.coffee',
+                    'src/grid.js': 'src/grid.coffee'
 
                 }
             }
