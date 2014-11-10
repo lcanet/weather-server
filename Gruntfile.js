@@ -1,6 +1,7 @@
 module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-coffee');
+    grunt.loadNpmTasks('grunt-jasmine-node');
 
     // Project configuration.
     grunt.initConfig({
@@ -20,11 +21,29 @@ module.exports = function(grunt) {
 
                 }
             }
+        },
+        jasmine_node: {
+            options: {
+                forceExit: true,
+                match: '.',
+                matchall: false,
+                extensions: 'js',
+                specNameMatcher: 'spec',
+                jUnit: {
+                    report: true,
+                    savePath : "./build/reports/jasmine/",
+                    useDotNotation: true,
+                    consolidate: true
+                }
+            },
+            all: ['spec/']
         }
     });
 
 
     // Default task(s).
     grunt.registerTask('default', ['coffee']);
+    grunt.registerTask('build', ['coffee', 'jasmine_node']);
+    grunt.registerTask('test', ['coffee', 'jasmine_node']);
 
 };

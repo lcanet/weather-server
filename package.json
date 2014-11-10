@@ -23,10 +23,10 @@
 
     },
     "devDependencies": {
+        "coffee-script": "latest",
         "jasmine-node": "*",
         "grunt": "0.4.5",
-        "grunt-contrib-coffee": "0.12.0"
-    },
-    "main": "src/server.js"
-
+        "grunt-contrib-coffee": "0.12.0",
+        "grunt-jasmine-node": "*"
+    }
 }
