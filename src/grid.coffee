@@ -22,6 +22,7 @@ class MeasureGrid
     NaN if tab.length is 0
     (_.reduce tab, ((sum, x) -> sum + x), 0) / tab.length
 
+  # mean values in the grid
   meanValues: ->
     for i in [0...@n]
       for j in [0...@n]
@@ -37,6 +38,7 @@ class MeasureGrid
           nb++
     if nb is 0 then NaN else value / nb
 
+  # interpolate empty cell value based on their 8 nearest neighbour
   interpolateCells: () ->
     newGrid = []
     for i in [0...@n]

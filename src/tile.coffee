@@ -104,7 +104,7 @@ class MapTileProducer
     ctx.font = 'italic 12px Verdana'
     ctx.fillStyle = '#D0D0D080'
     ctx.textAlign = 'center'
-    ctx.fillText('weather-api.lc6.net', 0, 0)
+    ctx.fillText 'weather-api.lc6.net', 0, 0
 
   produceMap: (tile, gridSize, drawStations, alpha, callback)  ->
 
