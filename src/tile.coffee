@@ -51,7 +51,7 @@ class ProjectionUtils
 
 class TileMeasureExtractor
   constructor: (@minValue, @maxValue, colors...) ->
-    @gradient = gradient(colors).hsv(256).reverse()
+    @gradient = gradient(colors).rgb(256).reverse()
     @a = 256 / (@maxValue - @minValue)
     @b = -@minValue * @a
 
@@ -64,7 +64,10 @@ class TileMeasureExtractor
   getColor: (val) ->
     val = @minValue if val < @minValue
     val = @maxValue if val > @maxValue
-    color = @gradient[ Math.floor(@a * val + @b) ]
+    norm = Math.floor(@a * val + @b)
+    if norm > @gradient.length - 1
+      norm = @gradient.length - 1
+    @gradient[norm]
 
 
 class TemperatureMeasureExtractor extends TileMeasureExtractor
@@ -84,6 +87,14 @@ class PressureMeasureExtractor extends TileMeasureExtractor
 
   getValue: (metar) ->
     if metar.altimeter is null or metar.altimeter < 500 or metar.altimeter > 1500 then NaN else metar.altimeter
+
+
+class WindMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super 5, 25, '#b10026', '#fd8d3c','#ffffb2'
+
+  getValue: (metar) ->
+    if metar.wind then metar.wind.speed else NaN
 
 
 class MapTileProducer
@@ -176,6 +187,8 @@ class MapTileProducer
       return new TemperatureMeasureExtractor()
     else if measure is 'pressure'
       return new PressureMeasureExtractor()
+    else if measure is 'wind'
+      return new WindMeasureExtractor()
     else
       return null
 

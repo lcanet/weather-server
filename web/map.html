@@ -19,6 +19,7 @@
 <div class="container">
     <button id="tempBt">Temperature</button>
     <button id="pressBt">Pressure</button>
+    <button id="windBt">Wind speed</button>
 </div>
 
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
@@ -44,6 +45,7 @@
     addLayer('temperature');
     document.getElementById('tempBt').onclick = function() { addLayer('temperature') };
     document.getElementById('pressBt').onclick = function() { addLayer('pressure') };
+    document.getElementById('windBt').onclick = function() { addLayer('wind') };
 
 
 
