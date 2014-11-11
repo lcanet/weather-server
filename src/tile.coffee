@@ -49,18 +49,50 @@ class ProjectionUtils
     return x:pt.x - tileOrigin.x, y:pt.y - tileOrigin.y
 
 
+class TileMeasureExtractor
+  constructor: (@minValue, @maxValue, colors...) ->
+    @gradient = gradient(colors).hsv(256).reverse()
+    @a = 256 / (@maxValue - @minValue)
+    @b = -@minValue * @a
+
+  getValue: (metar) ->
+    NaN
+
+  getDefaultAlpha: ->
+    0.5
+
+  getColor: (val) ->
+    val = @minValue if val < @minValue
+    val = @maxValue if val > @maxValue
+    color = @gradient[ Math.floor(@a * val + @b) ]
+
+
+class TemperatureMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super -20, 50, '#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8b00ff'
+
+  getValue: (metar) ->
+    metar.temperature
+
+
+class PressureMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super 980, 1050, '#f0f9e8', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#2b8cbe', '#2b8cbe'
+
+  getDefaultAlpha: ->
+    0.8
+
+  getValue: (metar) ->
+    if metar.altimeter is null or metar.altimeter < 500 or metar.altimeter > 1500 then NaN else metar.altimeter
+
 
 class MapTileProducer
   constructor: (@backend) ->
     @projection = new ProjectionUtils()
-    @gradient = gradient('#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8b00ff').hsv(256).reverse()
-    @minValue = -20
-    @maxValue = 50
 
   DEFAULT_GRID_SIZE: 8
-  DEFAULT_ALPHA: 0.5
 
-  createGrid: (docs, n, tileOriginPix, zoom) ->
+  createGrid: (docs, measureExtractor, n, tileOriginPix, zoom) ->
     # create grid
     grid = new MeasureGrid(n)
     # add docs
@@ -70,7 +102,7 @@ class MapTileProducer
       docPix = @projection.latLonToPointRelative {lat: doc.lat, lon: doc.lon}, tileOriginPix, zoom
       docGridX = Math.floor(docPix.x / gridWidth)
       docGridY = Math.floor(docPix.y / gridWidth)
-      grid.addValue(docGridX, docGridY, doc.last.temperature) if doc.last
+      grid.addValue(docGridX, docGridY, measureExtractor.getValue(doc.last)) if doc.last
     grid
 
   drawPoint: (ctx, tileOriginPix, zoom, doc) ->
@@ -78,20 +110,15 @@ class MapTileProducer
     ctx.fillStyle = "#FF0000"
     ctx.fillRect docPix.x-3, docPix.y-3, 6, 6
 
-  drawGrid: (ctx, grid, n, alpha) ->
+  drawGrid: (ctx, measureExtractor, grid, n, alpha) ->
     gridWidth = grid.gridWidth()
-
-    a = 256 / (@maxValue - @minValue)
-    b = -@minValue * a
 
     # fill canvas
     for i in [0...n]
       for j in [0...n]
         val = grid.valueAt(i, j)
         if !isNaN(val)
-          val = @minValue if val < @minValue
-          val = @maxValue if val > @maxValue
-          color = @gradient[ Math.floor(a * val + b) ]
+          color = measureExtractor.getColor val
           color.setAlpha alpha
           colorStr = color.toRgbString()
           ctx.fillStyle = colorStr
@@ -106,7 +133,7 @@ class MapTileProducer
     ctx.textAlign = 'center'
     ctx.fillText 'weather-api.lc6.net', 0, 0
 
-  produceMap: (tile, gridSize, drawStations, alpha, callback)  ->
+  produceMap: (tile, measureExtractor, gridSize, drawStations, alpha, callback)  ->
 
     tileOriginLatLon = @projection.tileToLatLon tile
     tileMaxLatLon = @projection.tileToLatLon { x: tile.x + 1, y: tile.y + 1, z: tile.z }
@@ -127,10 +154,10 @@ class MapTileProducer
         return callback err if err
 
         # draw grid
-        grid = @createGrid(docs, gridSize, tileOriginPix, tile.z)
+        grid = @createGrid docs, measureExtractor, gridSize, tileOriginPix, tile.z
         grid.meanValues()
         grid.interpolateCells()
-        @drawGrid(ctx, grid, gridSize, alpha)
+        @drawGrid ctx, measureExtractor, grid, gridSize, alpha
 
         # draw station locations
         @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs if drawStations
@@ -144,14 +171,27 @@ class MapTileProducer
     winston.log 'error', 'Cannot produce tile' + (err.message || err)
     res.status(500).send('oops, an error occured')
 
+  buildMeasure: (measure) ->
+    if measure is 'temperature'
+      return new TemperatureMeasureExtractor()
+    else if measure is 'pressure'
+      return new PressureMeasureExtractor()
+    else
+      return null
+
   registerRoutes: (app) ->
-    app.get '/map/temperature/:z/:x/:y.png', (req, res) =>
+    app.get '/map/:measure/:z/:x/:y.png', (req, res) =>
+
+      measureExtractor = @buildMeasure req.params.measure
+      if measureExtractor is null
+        return res.status(400).send('Invalid measure')
+
       tile = x:parseInt(req.params.x), y:parseInt(req.params.y), z:parseInt(req.params.z)
       gridSize = if req.query.grid then parseInt(req.query.grid) else @DEFAULT_GRID_SIZE
       stations = !!req.query.stations
-      alpha = if req.query.alpha then parseFloat(req.query.alpha) else @DEFAULT_ALPHA
+      alpha = if req.query.alpha then parseFloat(req.query.alpha) else measureExtractor.getDefaultAlpha()
 
-      @produceMap tile, gridSize, stations, alpha, (err, pngBuf) =>
+      @produceMap tile, measureExtractor, gridSize, stations, alpha, (err, pngBuf) =>
         return @sendError(res, err) if err
 
         res.set 'Content-Type', 'image/png'

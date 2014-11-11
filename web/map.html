@@ -7,6 +7,7 @@
     <style>
         html, body, #map { width: 100%; height: 100% }
         body { margin: 0 }
+        .container { position: absolute; top: 0; right: 0; padding: 10px}
     </style>
 </head>
 <body>
@@ -14,6 +15,12 @@
 <div id="map">
 
 </div>
+
+<div class="container">
+    <button id="tempBt">Temperature</button>
+    <button id="pressBt">Pressure</button>
+</div>
+
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 <script>
     // create a map in the "map" div, set the view to a given place and zoom
@@ -24,9 +31,22 @@
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    L.tileLayer('/map/temperature/{z}/{x}/{y}.png?alpha=0.5&d=' + new Date().getTime(), {
-        attribution: 'weather-api.lc6.net'
-    }).addTo(map);
+    var currentLayer;
+
+    function addLayer(layer) {
+        currentLayer && map.removeLayer(currentLayer);
+
+        currentLayer = L.tileLayer('/map/' + layer + '/{z}/{x}/{y}.png?d=' + new Date().getTime(), {
+            attribution: 'weather-api.lc6.net'
+        });
+        currentLayer.addTo(map);
+    }
+    addLayer('temperature');
+    document.getElementById('tempBt').onclick = function() { addLayer('temperature') };
+    document.getElementById('pressBt').onclick = function() { addLayer('pressure') };
+
+
+
 
 </script>
 
