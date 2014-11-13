@@ -1,4 +1,5 @@
 _ = require 'lodash'
+mathjs = require 'mathjs'
 
 class MeasureGrid
   constructor: (@n) ->
@@ -9,6 +10,7 @@ class MeasureGrid
         line.push []
       @grid.push line
 
+  # The size of one cell of this grid in a tile
   gridWidth: ->
     256 / @n
 
@@ -28,24 +30,57 @@ class MeasureGrid
       for j in [0...@n]
         @grid[i][j] = @average(@grid[i][j])
 
-  interpolatePos: (i, j) ->
+  interpolateCellNeighbours: (i, j, delta=1) ->
     value = 0
     nb = 0
-    for k in [i-1..i+1]
-      for l in [j-1..j+1]
+    for k in [i-delta..i+delta]
+      for l in [j-delta..j+delta]
         if k >= 0 and l >= 0 and k < @n and l < @n and !isNaN(@grid[k][l])
           value += @grid[k][l]
           nb++
     if nb is 0 then NaN else value / nb
 
-  # interpolate empty cell value based on their 8 nearest neighbour
-  interpolateCells: () ->
+  dist: (i1, j1, i2, j2) ->
+    mathjs.sqrt( (i1-i2)*(i1-i2) + (j1-j2)*(j1-j2))
+
+  w: (i1, j1, i2, j2, p = 1) ->
+    1 / mathjs.pow(@dist(i1, j1, i2, j2), p)
+
+
+  allWNorm: (i, j, p = 1) ->
+    s = 0
+    for k in [0...@n]
+      for l in [0...@n]
+        s += @w(i, j, k, l, p) if !isNaN(@grid[k][l])
+    s
+
+  interpolateCellIDW: (i, j, p = 1) ->
+    n = @allWNorm i, j, p
+    s = 0
+    for k in [0...@n]
+      for l in [0...@n]
+        s += @w(i, j, k, l, p) * @grid[k][l]  if !isNaN(@grid[k][l])
+    if n  is 0 then NaN else s / n
+
+  interpolateGrid: (cellFn) ->
     newGrid = []
     for i in [0...@n]
       newGrid[i] = []
       for j in [0...@n]
-        newGrid[i][j] = if !isNaN(@grid[i][j]) then @grid[i][j] else @interpolatePos(i, j)
+        newGrid[i][j] = if !isNaN(@grid[i][j]) then @grid[i][j] else cellFn(i, j)
     @grid = newGrid
+
+
+  # interpolate empty cell value based on their 8 nearest neighbour
+  interpolateNeighbours: () ->
+    @interpolateGrid (i, j) =>
+      @interpolateCellNeighbours(i, j, 1)
+
+  # Interpolate using IDW
+  interpolateIDW: (p) ->
+    @interpolateGrid (i, j) =>
+      @interpolateCellIDW(i, j, p)
+
 
 
 exports.MeasureGrid = MeasureGrid

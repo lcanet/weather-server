@@ -25,9 +25,18 @@ describe 'Measure Grid', ->
       grid.addValue(0,0, 40)
       grid.addValue(1,1, 20)
       grid.meanValues()
-      grid.interpolateCells()
+      grid.interpolateNeighbours()
 
       expect(grid.valueAt(0,1)).toBe 30
       expect(grid.valueAt(1,0)).toBe 30
 
-
+    it 'Should interpolate using IDW', ->
+      grid = new MeasureGrid(3)
+      grid.addValue(0,0, 40)
+      grid.addValue(1,1, 20)
+      grid.meanValues()
+      grid.interpolateIDW 1
+      expect(grid.valueAt(0,1)).toBe 30
+      expect(grid.valueAt(1,0)).toBe 30
+      expect(grid.valueAt(2,0) == grid.valueAt(0,2)).toBe true   # symetry
+      expect(grid.valueAt(2, 0)).toBeLessThan 30

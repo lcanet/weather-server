@@ -167,7 +167,9 @@ class MapTileProducer
         # draw grid
         grid = @createGrid docs, measureExtractor, gridSize, tileOriginPix, tile.z
         grid.meanValues()
-        grid.interpolateCells()
+        # grid.interpolateNeighbours()
+        grid.interpolateIDW 1
+
         @drawGrid ctx, measureExtractor, grid, gridSize, alpha
 
         # draw station locations
@@ -199,7 +201,11 @@ class MapTileProducer
       if measureExtractor is null
         return res.status(400).send('Invalid measure')
 
-      tile = x:parseInt(req.params.x), y:parseInt(req.params.y), z:parseInt(req.params.z)
+      tile =
+        x:  parseInt(req.params.x),
+        y:  parseInt(req.params.y),
+        z:  parseInt(req.params.z)
+
       gridSize = if req.query.grid then parseInt(req.query.grid) else @DEFAULT_GRID_SIZE
       stations = !!req.query.stations
       alpha = if req.query.alpha then parseFloat(req.query.alpha) else measureExtractor.getDefaultAlpha()
@@ -209,6 +215,7 @@ class MapTileProducer
 
         res.set 'Content-Type', 'image/png'
         res.send pngBuf
+
 
 
 
