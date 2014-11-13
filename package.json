@@ -19,7 +19,8 @@
         "mathjs": "1.0.1",
         "canvas": "1.1.6",
         "tinygradient": "0.2.0",
-        "color": "0.7.3"
+        "color": "0.7.3",
+        "node-stopwatch": "0.0.1"
 
     },
     "devDependencies": {

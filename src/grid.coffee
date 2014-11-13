@@ -2,7 +2,7 @@ _ = require 'lodash'
 mathjs = require 'mathjs'
 
 class MeasureGrid
-  constructor: (@n) ->
+  constructor: (@n, @tileWidth = 256) ->
     @grid = []
     for i in [0...@n]
       line = []
@@ -12,7 +12,7 @@ class MeasureGrid
 
   # The size of one cell of this grid in a tile
   gridWidth: ->
-    256 / @n
+    @tileWidth / @n
 
   addValue: (i, j, value) ->
     @grid[i][j].push value if !isNaN(value) and !_.isUndefined(value)

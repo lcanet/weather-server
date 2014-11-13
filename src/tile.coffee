@@ -5,6 +5,7 @@ _ = require 'lodash'
 color = require 'color'
 gradient = require 'tinygradient'
 MeasureGrid = require('./grid').MeasureGrid
+Stopwatch = require('node-stopwatch').Stopwatch;
 
 class ProjectionUtils
   constructor: ->
@@ -101,11 +102,12 @@ class MapTileProducer
   constructor: (@backend) ->
     @projection = new ProjectionUtils()
 
-  DEFAULT_GRID_SIZE: 8
+  DEFAULT_GRID_SIZE: 16
 
-  createGrid: (docs, measureExtractor, n, tileOriginPix, zoom) ->
+  createGrid: (docs, measureExtractor, n, tileOriginPix, zoom, gridBuffer = 0) ->
     # create grid
-    grid = new MeasureGrid(n)
+    nbGrid = 1 + 2 *gridBuffer
+    grid = new MeasureGrid(nbGrid * n, nbGrid * 256)
     # add docs
     gridWidth = grid.gridWidth()
 
@@ -121,13 +123,13 @@ class MapTileProducer
     ctx.fillStyle = "#FF0000"
     ctx.fillRect docPix.x-3, docPix.y-3, 6, 6
 
-  drawGrid: (ctx, measureExtractor, grid, n, alpha) ->
+  drawGrid: (ctx, measureExtractor, grid, n, gridBuffer, alpha) ->
     gridWidth = grid.gridWidth()
 
     # fill canvas
     for i in [0...n]
       for j in [0...n]
-        val = grid.valueAt(i, j)
+        val = grid.valueAt(gridBuffer * n + i, gridBuffer * n + j)
         if !isNaN(val)
           color = measureExtractor.getColor val
           color.setAlpha alpha
@@ -146,16 +148,20 @@ class MapTileProducer
 
   produceMap: (tile, measureExtractor, gridSize, drawStations, alpha, callback)  ->
 
-    tileOriginLatLon = @projection.tileToLatLon tile
-    tileMaxLatLon = @projection.tileToLatLon { x: tile.x + 1, y: tile.y + 1, z: tile.z }
-    tileOriginPix = @projection.latLonToPoint tileOriginLatLon, tile.z
+    tileMinLatLon = @projection.tileToLatLon { x: tile.x - 1, y:tile.y - 1, z: tile.z }
+    tileMaxLatLon = @projection.tileToLatLon { x: tile.x + 2, y: tile.y + 2, z: tile.z }
+
+    tileOriginPix = @projection.latLonToPoint tileMinLatLon, tile.z
+
 
     canvas = new Canvas 256, 256
     ctx = canvas.getContext '2d'
 
+    gridBuffer = 1
+
     query = $and: [ {lat: { $gte: tileMaxLatLon.lat }},
-      { lat: { $lt: tileOriginLatLon.lat }},
-      { lon: { $gte: tileOriginLatLon.lon}},
+      { lat: { $lt: tileMinLatLon.lat }},
+      { lon: { $gte: tileMinLatLon.lon}},
       { lon: { $lt: tileMaxLatLon.lon }}  ]
 
     @backend.withConnection (err, db) =>
@@ -165,12 +171,16 @@ class MapTileProducer
         return callback err if err
 
         # draw grid
-        grid = @createGrid docs, measureExtractor, gridSize, tileOriginPix, tile.z
+        grid = @createGrid docs, measureExtractor, gridSize, tileOriginPix, tile.z, gridBuffer
         grid.meanValues()
-        # grid.interpolateNeighbours()
-        grid.interpolateIDW 1
 
-        @drawGrid ctx, measureExtractor, grid, gridSize, alpha
+        stopWatch = Stopwatch.create()
+        stopWatch.start();
+        grid.interpolateIDW 4
+        stopWatch.stop();
+        winston.log 'info', 'Interpolation on ' + grid.n + ' points took ' + stopWatch.elapsedMilliseconds + ' ms.'
+
+        @drawGrid ctx, measureExtractor, grid, gridSize, gridBuffer, alpha
 
         # draw station locations
         @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs if drawStations
@@ -215,7 +225,6 @@ class MapTileProducer
 
         res.set 'Content-Type', 'image/png'
         res.send pngBuf
-
 
 
 
