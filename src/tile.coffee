@@ -2,6 +2,7 @@ winston = require 'winston'
 Canvas = require 'canvas'
 mathjs = require 'mathjs'
 _ = require 'lodash'
+moment = require 'moment'
 color = require 'color'
 gradient = require 'tinygradient'
 MeasureGrid = require('./grid').MeasureGrid
@@ -104,6 +105,8 @@ class MapTileProducer
 
   DEFAULT_GRID_SIZE: 16
 
+  MAX_DATA_AGE: 6   # In hours
+
   createGrid: (docs, measureExtractor, n, tileOriginPix, zoom, gridBuffer = 0) ->
     # create grid
     nbGrid = 1 + 2 *gridBuffer
@@ -153,22 +156,24 @@ class MapTileProducer
 
     tileOriginPix = @projection.latLonToPoint tileMinLatLon, tile.z
 
-
     canvas = new Canvas 256, 256
     ctx = canvas.getContext '2d'
-
     gridBuffer = 1
 
     query = $and: [ {lat: { $gte: tileMaxLatLon.lat }},
       { lat: { $lt: tileMinLatLon.lat }},
       { lon: { $gte: tileMinLatLon.lon}},
-      { lon: { $lt: tileMaxLatLon.lon }}  ]
+      { lon: { $lt: tileMaxLatLon.lon }},
+      { lastUpdate: { $gte: moment().subtract(@MAX_DATA_AGE, 'hours').toDate() }}
+    ]
 
     @backend.withConnection (err, db) =>
       return callback err if err
       db.collection('stations').find(query).toArray (err, docs) =>
         db.close()
         return callback err if err
+
+        winston.log 'info', 'Drawing tile with %d docs', docs.length
 
         # draw grid
         grid = @createGrid docs, measureExtractor, gridSize, tileOriginPix, tile.z, gridBuffer
