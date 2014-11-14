@@ -16,6 +16,11 @@ appendSunCalcs = (x) ->
   x.sunTimes = SunCalc.getTimes date, x.lat, x.lon
   x
 
+
+computeRelativeHumidity = (metar) ->
+  Math.floor 100 - 5 * (metar.temperature - metar.dewPoint)
+
+
 makeBasic = (source) ->
   dest = copy source, {}, ['code', 'lat', 'lon', 'name', 'city']
   if source.lastUpdate and source.tz
@@ -29,6 +34,7 @@ toBare = (source) ->
   dest.altitude = source.alt
   if source.last
     copy source.last, dest, ['wind', 'visibility', 'clouds', 'temperature', 'dewPoint', 'altimeter', 'cavok', 'nosig', 'conditions', 'clear', 'visibilityInDirection']
+    dest.humidity = computeRelativeHumidity source.last
   dest
 
 toBareMetar = (source) ->
@@ -46,9 +52,11 @@ toSimple = (source) ->
   if source.last
     copy source.last, dest, ['temperature', 'wind']
     dest.icon = iconifier source.last, source
+    dest.humidity = computeRelativeHumidity source.last
   dest
 
 toClassic = (source) ->
+  source.humidity = computeRelativeHumidity source.last if source?.last
   appendSunCalcs source
 
 transform = (source, destFormat='bare') ->
