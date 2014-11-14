@@ -8,5 +8,4 @@ See [live](http://weather-api.lc6.net/)
 * [Map](http://weather-api.lc6.net/web/map.html)
 
 
-![Build status](https://travis-ci.org/lcanet/weather-server.png?branch=master)
-
+[![Build Status](https://travis-ci.org/lcanet/weather-server.svg?branch=master)](https://travis-ci.org/lcanet/weather-server)

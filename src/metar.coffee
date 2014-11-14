@@ -48,7 +48,7 @@ CONDITIONS = {
   GR: "hail",
   GS: "small hail",
   UP: "unknown precipitation",
-  # Obscruration
+  # Obscuration
   FG: "fog",
   VA: "volcanic ash",
   BR: "mist",
@@ -75,8 +75,8 @@ CLOUD_COLORS = {
   AMB: 'amber',
   RED: 'red',
   BLACK: 'black'
-
 }
+CLOUD_COLORS_REGEX = '^(' + _.keys(CLOUD_COLORS).join('|') + ')$';
 
 TURBULENCE_TYPES = [
   { intensity: 'none' },
@@ -91,7 +91,6 @@ TURBULENCE_TYPES = [
   { intensity: 'severe', weather: 'cloud', frequency: 'frequent' }
 ]
 
-CLOUD_COLORS_REGEX = '^(' + _.keys(CLOUD_COLORS).join('|') + ')$';
 
 class MetarParser
   constructor: (line) ->
@@ -113,49 +112,49 @@ class MetarParser
 
     if index is 0
       @result.icao = token
-    else if index is 1 and (match = token.match(/^[0-3][0-9][0-9]{4}Z$/))
+    else if index is 1 and (match = token.match /^[0-3][0-9][0-9]{4}Z$/)
       @result.day = parseInt(match[0].substring(0,2))
       @result.hour = parseInt(match[0].substring(2,4))*60 + parseInt(match[0].substring(4,6))
     else if token is 'AUTO'
       @result.automatic = true
     else if token is 'COR'
       @result.corrected = true
-    else if match = token.match(/^([0-9\/]{3}|VRB)([0-9\/]{2,})(G[0-9]+)?(MPS|KT|KMH|KTS)$/)
-      @parseWind(match)
-    else if match = token.match(/^([0-9]{3})V([0-9]{3})$/)
-      @parseVariableWindDirection(match)
-    else if token.match(/^5[0-9]{5}$/)
-      @parseTurbulence(token)
+    else if match = token.match /^([0-9\/]{3}|VRB)([0-9\/]{2,})(G[0-9]+)?(MPS|KT|KMH|KTS)$/
+      @parseWind match
+    else if match = token.match /^([0-9]{3})V([0-9]{3})$/
+      @parseVariableWindDirection match
+    else if token.match /^5[0-9]{5}$/
+      @parseTurbulence token
     else if token.match(/^WS$/) and @result.wind isnt null
       @result.wind.shear = true
     else if token is '1'
       @visibilityCarry = 1
     else if token is '2'
       @visibilityCarry = 2
-    else if match  = token.match(/^([0-9]{4})(NDV)?$/)
+    else if match  = token.match /^([0-9]{4})(NDV)?$/
       @result.visibility = normalizeDistance(parseInt(match[1]), 'M')
-    else if match  = token.match(/^([0-9]{4})FT?$/)
+    else if match  = token.match /^([0-9]{4})FT?$/
       @result.visibility = normalizeDistance(parseInt(match[1]), 'FT')
-    else if match  = token.match(/^([0-9]{4})([NSEW]+)$/)
+    else if match  = token.match /^([0-9]{4})([NSEW]+)$/
       @parseVisibilityInDirection match
-    else if match = token.match(/^M?([0-9]+)(\/[0-9]+)?SM$/)
+    else if match = token.match /^M?([0-9]+)(\/[0-9]+)?SM$/
       @parseVisibility match
       @visibilityCarry = 0
-    else if token.match(/^M?[0-9]+\/(M?[0-9]+)?$/)
+    else if token.match /^M?[0-9]+\/(M?[0-9]+)?$/
       @parseTemperatures token
-    else if token.match(/^[AQ][0-9]{2}[\.\\/]?[0-9]{2}$/)
+    else if token.match /^[AQ][0-9]{2}[\.\\/]?[0-9]{2}$/
       @parseAltimer token
-    else if match = token.match(/^(SKC|CLR|NSC|FEW|SCT|BKN|OVC|VV)([0-9]+)?(.*)?\/*$/)
+    else if match = token.match /^(SKC|CLR|NSC|FEW|SCT|BKN|OVC|VV)([0-9]+)?(.*)?\/*$/
       @parseClouds match
-    else if token.match(/^(SCSL|CB|ACSL|CMBMAM|CCSL)$/)
+    else if token.match /^(SCSL|CB|ACSL|CMBMAM|CCSL)$/
       @addLastCloudType token
-    else if token.match(/^R[0-9]+[LRC]?\/.*$/)
+    else if token.match /^R[0-9]+[LRC]?\/.*$/
       ### skip unsupported runway visibility ###
     else if token is 'CLR' or token is 'NCD'
       @result.clear = true
-    else if token.match(CONDITIONS_REGEX)
+    else if token.match CONDITIONS_REGEX
       @parseCondition(token)
-    else if token.match(CLOUD_COLORS_REGEX)
+    else if token.match CLOUD_COLORS_REGEX
       @result.color = token
     else if token is 'CAVOK'
       @result.cavok = true
@@ -164,10 +163,10 @@ class MetarParser
     else if token is 'RMK'
       @inRemarks = true
       @inTempo = false
-    else if token is 'TEMPO' or token is 'BECMG' or token.match(/^TL[0-9]{4}$/)
+    else if token is 'TEMPO' or token is 'BECMG' or token.match /^TL[0-9]{4}$/
       @inRemarks = false
       @inTempo = true
-    else if token.match(/^\/+$/)
+    else if token.match /^\/+$/
       # nothing
     else if !@inRemarks && !@inTempo
       @unknownTokens.push token
