@@ -79,6 +79,38 @@ app.get '/weather', (req,res) ->
 
           db.close()
 
+
+### ---------------------------------------------------
+  Get stations geo json
+
+###
+
+app.get '/weather/geojson', (req,res) ->
+  backend.withConnection (err, db) ->
+    if err
+      winston.error 'Cannot connect to mongo: ' + err
+      sendError res
+    else
+      minLat = parseFloat(req.query.minX)
+      minLon = parseFloat(req.query.minY)
+      maxLat = parseFloat(req.query.maxX)
+      maxLon = parseFloat(req.query.maxY)
+
+      return sendError res, 'Invalid parameters' if isNaN(minLat) or isNaN(minLon) or isNaN(maxLat) or isNaN(maxLon)
+
+      query = $and: [ {lat: { $gte: minLat  }},
+        { lat: { $lt: maxLat}},
+        { lon: { $gte: minLon }},
+        { lon: { $lt: maxLon }}
+      ]
+      db.collection('stations').find(query, { limit: 1000}).toArray (err, docs) ->
+        if err
+          sendError res, err
+        else
+          res.jsonp transformers.toGeoJson(docs)
+        db.close()
+
+
 ### ---------------------------------------------------
 Weather at one station
 
@@ -120,6 +152,26 @@ app.get '/station/:code/history', (req,res) ->
         else
           res.jsonp(transformers.transformHistory(docs, req.query.format))
         db.close()
+
+
+### ---------------------------------------------------
+  Search stations by name
+
+###
+
+app.get '/stations/search', (req,res) ->
+  backend.withConnection (err, db) ->
+    if err
+      winston.error 'Cannot connect to mongo: ' + err
+      sendError res
+    else
+      db.collection('stations').find({city:{ $regex: req.query.q, $options: 'i' }}, {name: true, city: true, code: true}, { sort: [['city', 1]], limit: 20}).toArray (err, docs) ->
+        if err
+          sendError res, err
+        else
+          res.jsonp(docs)
+        db.close()
+
 
 
 ### ---------------------------------------------------

@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <title></title>
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="css/weather-icons.css" />
     <style>
         html, body, #map { width: 100%; height: 100% }
         body { margin: 0 }
         .container { position: absolute; top: 0; right: 0; padding: 10px}
+        .divicon {
+            font-size: 28px;
+            line-height: 32px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -22,6 +28,7 @@
     <button id="windBt">Wind speed</button>
 </div>
 
+<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 <script>
     // create a map in the "map" div, set the view to a given place and zoom
@@ -48,6 +55,41 @@
     document.getElementById('windBt').onclick = function() { addLayer('wind') };
 
 
+    var iconsCache = {};
+
+    var geoJsonLayer = L.geoJson([], {
+        onEachFeature: function (feature, layer) {
+            layer.bindPopup(feature.properties.city + ' ' + feature.properties.temperature + ' °C');
+        },
+        pointToLayer: function(feature, latLng) {
+            var iconName = feature.properties.icon;
+            var icon = iconsCache[iconName];
+            if (!icon) {
+                icon = L.divIcon({className: 'divicon wi wi-' +iconName, iconSize: [32, 32]});
+                iconsCache[iconName] = icon;
+            }
+            return L.marker(latLng, {icon: icon});
+        }
+    });
+    geoJsonLayer.addTo(map);
+
+    var refreshGeoJson = function() {
+        geoJsonLayer.clearLayers();
+        var zoom = map.getZoom();
+        if (zoom >= 7) {
+            var bounds = map.getBounds();
+            $.get('/weather/geojson?minX=' + bounds.getSouth() +'&minY=' + bounds.getWest() +
+                            '&maxX=' + bounds.getNorth() + '&maxY=' + bounds.getEast(), function(res){
+                geoJsonLayer.clearLayers();
+                geoJsonLayer.addData(res);
+            });
+        }
+
+    };
+    refreshGeoJson();
+
+    map.on('moveend', refreshGeoJson);
+    map.on('zoomend', refreshGeoJson);
 
 
 </script>

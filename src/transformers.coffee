@@ -92,7 +92,26 @@ transformHistory = (source, destFormat='bare') ->
   _.map source, (x) ->
     _.omit x, '_id'
 
+getGeojsonGeometry = (source) ->
+  type: 'Point', coordinates: [source.lon, source.lat]
+
+getGeojsonProperties = (source, format = 'simple') ->
+  dest = copy source, {}, ['code', 'name', 'city']
+  if format is 'simple'
+    if source.last
+      copy source.last, dest, ['temperature', 'wind']
+      dest.icon = iconifier source.last, source
+      dest.humidity = computeRelativeHumidity source.last
+  dest
+
+toGeoJsonFeature = (source, format = 'simple') ->
+  type: 'Feature', geometry: getGeojsonGeometry(source), properties: getGeojsonProperties(source, format)
+
+toGeoJson = (source, format = 'simple') ->
+  type: 'FeatureCollection', features: _.map source, (x) -> toGeoJsonFeature(x, format)
+
 exports.transform = transform
 exports.transformGeoNear = transformGeoNear
 exports.transformGeoNears = transformGeoNears
 exports.transformHistory = transformHistory
+exports.toGeoJson = toGeoJson

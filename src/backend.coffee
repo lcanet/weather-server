@@ -5,7 +5,7 @@ class Backend
   constructor: ->
 
   withConnection: (callback) ->
-    mongo.MongoClient.connect 'mongodb://127.0.0.1:27017/weather', (err, db) =>
+    mongo.MongoClient.connect 'mongodb://192.168.0.2:27017/weather', (err, db) =>
       if err
         callback err
       else
