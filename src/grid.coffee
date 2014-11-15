@@ -62,11 +62,11 @@ class MeasureGrid
         s += @w(i, j, k, l, p) * @grid[k][l]  if !isNaN(@grid[k][l])
     if n  is 0 then NaN else s / n
 
-  interpolateGrid: (cellFn) ->
+  interpolateGrid: (cellFn, startX = 0, endX = @n, startY = 0, endY = @n) ->
     newGrid = []
-    for i in [0...@n]
+    for i in [startX...endX]
       newGrid[i] = []
-      for j in [0...@n]
+      for j in [startY...endY]
         newGrid[i][j] = if !isNaN(@grid[i][j]) then @grid[i][j] else cellFn(i, j)
     @grid = newGrid
 
@@ -77,9 +77,11 @@ class MeasureGrid
       @interpolateCellNeighbours(i, j, 1)
 
   # Interpolate using IDW
-  interpolateIDW: (p) ->
-    @interpolateGrid (i, j) =>
+  interpolateIDW: (p, startX = 0, endX = @n, startY = 0, endY = @n) ->
+    cellFn = (i, j) =>
       @interpolateCellIDW(i, j, p)
+    @interpolateGrid cellFn, startX, endX, startX, endY
+
 
 
 

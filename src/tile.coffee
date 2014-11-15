@@ -181,7 +181,7 @@ class MapTileProducer
 
         stopWatch = Stopwatch.create()
         stopWatch.start();
-        grid.interpolateIDW 4
+        grid.interpolateIDW 4, gridBuffer * gridSize, (gridBuffer + 1) * gridSize, gridBuffer * gridSize, (gridBuffer + 1) * gridSize
         stopWatch.stop();
         winston.log 'info', 'Interpolation on ' + grid.n + ' points took ' + stopWatch.elapsedMilliseconds + ' ms.'
 
