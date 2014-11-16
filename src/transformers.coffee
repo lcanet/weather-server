@@ -11,10 +11,12 @@ copy = (source, dest, properties) ->
       dest[key] = source[key]
   dest
 
-appendSunCalcs = (x) ->
+appendSunCalcs = (dest, tz = 'GMT') ->
   date = moment(new Date()).tz('GMT')
-  x.sunTimes = SunCalc.getTimes date, x.lat, x.lon
-  x
+  dest.sunTimes = SunCalc.getTimes date, dest.lat, dest.lon
+  _.each dest.sunTimes, (value, key) ->
+    dest.sunTimes[key] = moment(value).tz(tz).format()
+  dest
 
 
 computeRelativeHumidity = (metar) ->
@@ -43,12 +45,9 @@ toBareMetar = (source) ->
     dest.metar = source.last.metar
   dest
 
-toBareSun = (source) ->
-  x = toBare source
-  appendSunCalcs x
-
 toSimple = (source) ->
   dest = makeBasic source
+  appendSunCalcs dest, source.tz
   if source.last
     copy source.last, dest, ['temperature', 'wind']
     dest.icon = iconifier source.last, source
@@ -57,7 +56,7 @@ toSimple = (source) ->
 
 toClassic = (source) ->
   source.humidity = computeRelativeHumidity source.last if source?.last
-  appendSunCalcs source
+  appendSunCalcs source, source.tz
 
 transform = (source, destFormat='bare') ->
   if _.isArray(source)
@@ -66,8 +65,6 @@ transform = (source, destFormat='bare') ->
   else
     if destFormat is 'bare'
       toBare source
-    else if destFormat is 'bareSun'
-      toBareSun source
     else if destFormat is 'bareMetar'
       toBareMetar source
     else if destFormat is 'simple'
