@@ -41,7 +41,7 @@ sendInvalid = (res, message) ->
 app.use '/web', express.static('web')
 
 app.get '/', (req,res) ->
-  res.send 'Weather Server'
+  res.redirect 301, '/web/index.html'
 
 ### ---------------------------------------------------
 Weather at a location
@@ -134,7 +134,7 @@ app.get '/station/:code', (req,res) ->
         db.close()
 
 ### ---------------------------------------------------
-  History of one statin
+  History of one station
 
 ###
 
@@ -165,7 +165,8 @@ app.get '/stations/search', (req,res) ->
       winston.error 'Cannot connect to mongo: ' + err
       sendError res
     else
-      db.collection('stations').find({city:{ $regex: req.query.q, $options: 'i' }}, {name: true, city: true, code: true}, { sort: [['city', 1]], limit: 20}).toArray (err, docs) ->
+      limit = parseInt(req.query.limit) || 10
+      db.collection('stations').find({city:{ $regex: req.query.q, $options: 'i' }}, {name: true, city: true, code: true}, { sort: [['city', 1]], limit: limit}).toArray (err, docs) ->
         if err
           sendError res, err
         else
