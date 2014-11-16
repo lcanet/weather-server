@@ -16,3 +16,4 @@ weather-server.log
 weather-server.log.*
 config-prod.json
 build/reports/
+web/libs/

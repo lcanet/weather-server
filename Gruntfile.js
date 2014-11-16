@@ -31,7 +31,7 @@ module.exports = function(grunt) {
                 specNameMatcher: 'spec',
                 jUnit: {
                     report: true,
-                    savePath : "./build/reports/jasmine/",
+                    savePath: "./build/reports/jasmine/",
                     useDotNotation: true,
                     consolidate: true
                 }
@@ -39,7 +39,6 @@ module.exports = function(grunt) {
             all: ['spec/']
         }
     });
-
 
     // Default task(s).
     grunt.registerTask('default', ['coffee']);
