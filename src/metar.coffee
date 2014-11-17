@@ -99,6 +99,7 @@ class MetarParser
       @result = {}
       @visibilityCarry = 0
       @unknownTokens = []
+      @inRemarks = @inTempo = false
 
 
   parse: ->
@@ -163,12 +164,12 @@ class MetarParser
     else if token is 'RMK'
       @inRemarks = true
       @inTempo = false
-    else if token is 'TEMPO' or token is 'BECMG' or token.match /^TL[0-9]{4}$/
+    else if token is 'TEMPO' or token is 'BECMG' or token.match(/^TL[0-9]{4}$/) or token.match(/^FM[0-9]+$/)
       @inRemarks = false
       @inTempo = true
     else if token.match /^\/+$/
       # nothing
-    else if !@inRemarks && !@inTempo
+    else
       @unknownTokens.push token
 
   parseWind: (match) ->

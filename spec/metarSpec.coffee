@@ -137,3 +137,8 @@ describe "METAR Decoder", ->
   it 'Should see wind shear', ->
     r = metar.decode 'GCLA 311930Z 02014KT 9999 SCT025 BKN050 23/18 Q1018 WS ALL RWY'
     expect(r.wind.shear).toBe true
+
+  it 'Should ignore FM (temporary) indications', ->
+    r = metar.decode 'YMML 162000Z 31008KT 9999 SCT033 BKN042 BKN260 13/08 Q1014 FM2100 25012KT 9999 -SHRA SCT020 BKN035 INTER 2100/2200 4000 SHRA BKN010'
+    expect(r.temperature).toBe 13
+    expect(r.wind.speed).toBe 8
