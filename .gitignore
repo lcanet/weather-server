@@ -18,3 +18,5 @@ config-prod.json
 build/reports/
 web/libs/
 .tmp/
+webdist/
+.idea/libraries/Generated_files.xml

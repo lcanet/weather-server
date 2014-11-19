@@ -4,6 +4,8 @@ angular.module('weatherDashboard').directive('mapView', function($rootScope){
         restrict: 'EA',
         replace: false,
         link: function(scope, elt, attrs) {
+            L.Icon.Default.imagePath = 'images';
+
             // create a map in the "map" div, set the view to a given place and zoom
             var map = L.map(elt[0]).setView([51.505, -0.09], 5);
 
