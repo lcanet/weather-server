@@ -47,12 +47,16 @@
     </md-content>
     <md-divider></md-divider>
     <md-content class="md-padding station-details" ng-if="weather">
-        <div layout="horizontal">
+        <div layout="horizontal" layout-align="center center">
             <div class="weather-icon">
                 <span class="wi" ng-class="weatherIcon(weather)"></span>
             </div>
             <div flex>
-                <h3>{{ weather.city }} ( {{ weather.name }} )</h3>
+                <h3>{{ weather.city }} ( {{ weather.name }} )
+                    <br/>
+                    <span class="update-info">last update {{weather.lastUpdate | date:'d/M/yy HH:mm'}}</span>
+
+                </h3>
             </div>
         </div>
         <div layout="horizontal">
