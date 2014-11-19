@@ -38,7 +38,11 @@ sendError = (res, message) ->
 sendInvalid = (res, message) ->
   res.status(400).send message
 
-app.use '/web', express.static('webdist')
+env = process.env.NODE_ENV
+webDirectory = if env is 'PRODUCTION' then 'webdist' else 'web'
+winston.info 'Using directory ' + webDirectory + ' for web pages'
+
+app.use '/web', express.static(webDirectory)
 
 app.get '/', (req,res) ->
   res.redirect 301, '/web/index.html'
