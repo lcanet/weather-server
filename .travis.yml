@@ -6,4 +6,4 @@ before_install:
   - sudo chown -R $USER /usr/local
   - sh install-canvas.sh
 install: npm install
-before_script: grunt build
+before_script: grunt ci

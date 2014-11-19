@@ -145,15 +145,9 @@ module.exports = function(grunt) {
                             '.htaccess',
                             '*.html',
                             'views/{,*/}*.html',
-                            'images/{,*/}*.{webp}',
+                            'images/{,*/}*.*',
                             'fonts/{,*/}*.*'
                         ]
-                    },
-                    {
-                        expand: true,
-                        cwd: '.tmp/images',
-                        dest: 'webdist/images',
-                        src: ['generated/*']
                     }
                 ]
             },
@@ -187,5 +181,6 @@ module.exports = function(grunt) {
     ]);
 
     grunt.registerTask('default', ['webbuild', 'serverbuild']);
+    grunt.registerTask('ci', ['webbuild', 'serverbuild', 'servertest']);
 
 };
