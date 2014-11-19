@@ -100,16 +100,6 @@ module.exports = function(grunt) {
             }
         },
 
-        imagemin: {
-            dist: {
-                files: [{
-                    expand: true,
-                    cwd: 'web/images',
-                    src: '{,*/}*.{png,jpg,jpeg,gif}',
-                    dest: 'webdist/images'
-                }]
-            }
-        },
         htmlmin: {
             dist: {
                 options: {
@@ -186,7 +176,6 @@ module.exports = function(grunt) {
         'clean:dist',
         'useminPrepare',
         'copy:styles',
-        'imagemin',
         'concat',
         'ngAnnotate',
         'copy:dist',
