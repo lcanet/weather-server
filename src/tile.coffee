@@ -7,49 +7,7 @@ color = require 'color'
 gradient = require 'tinygradient'
 MeasureGrid = require('./grid').MeasureGrid
 Stopwatch = require('node-stopwatch').Stopwatch;
-
-class ProjectionUtils
-  constructor: ->
-
-  MAX_LATITUDE: 85.0511287798,
-  MAP_TRANSFORMATION: [ 0.5 / Math.PI,  0.5,  -0.5 / Math.PI, 0.5]
-
-  tileToLatLon: (tile) ->
-    n = mathjs.pow(2, tile.z)
-    lonDeg = tile.x / n * 360.0 - 180.0
-    latRad = mathjs.atan( mathjs.sinh( Math.PI * ( 1 - 2 * tile.y / n)))
-    latDeg = latRad * 180.0 / Math.PI
-    return {lat: latDeg, lon: lonDeg }
-
-  lonLatToTile: (pt, zoom) ->
-    x = Math.floor((pt.lon+180)/360*Math.pow(2,zoom))
-    y = Math.floor((1-Math.log(Math.tan(pt.lat*Math.PI/180) + 1/Math.cos(pt.lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))
-    return x: x, y: y, z: zoom
-
-  project: (latLon) ->
-    d = Math.PI / 180
-    max = this.MAX_LATITUDE
-    lat = Math.max Math.min(max, latLon.lat), -max
-    x = latLon.lon * d
-    y = lat * d
-    y = Math.log(Math.tan((Math.PI / 4) + (y / 2)))
-    return x: x , y:y
-
-  transform: (point, scale) ->
-    point.x = scale * (@MAP_TRANSFORMATION[0] * point.x + @MAP_TRANSFORMATION[1])
-    point.y = scale * (@MAP_TRANSFORMATION[2] * point.y + @MAP_TRANSFORMATION[3])
-    point
-
-  latLonToPoint: (latLon, zoom) ->
-    projectedPoint = @project latLon
-    scale = 256 * Math.pow(2, zoom)
-    @transform projectedPoint, scale
-
-
-  latLonToPointRelative: (latLon, tileOrigin, zoom) ->
-    pt = @latLonToPoint latLon, zoom
-    return x:pt.x - tileOrigin.x, y:pt.y - tileOrigin.y
-
+Projection = require('./projection').Projection
 
 class TileMeasureExtractor
   constructor: (@minValue, @maxValue, colors...) ->
@@ -57,7 +15,10 @@ class TileMeasureExtractor
     @a = 256 / (@maxValue - @minValue)
     @b = -@minValue * @a
 
-  getValue: (metar) ->
+  getValueProperty: () ->
+    null
+
+  getValue: (stationRecord) ->
     NaN
 
   getDefaultAlpha: ->
@@ -76,9 +37,11 @@ class TemperatureMeasureExtractor extends TileMeasureExtractor
   constructor: ->
     super -20, 50, '#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8b00ff'
 
-  getValue: (metar) ->
-    metar.temperature
+  getValueProperty: () ->
+    'last.temperature'
 
+  getValue: (stationRecord) ->
+    stationRecord.last.temperature
 
 class PressureMeasureExtractor extends TileMeasureExtractor
   constructor: ->
@@ -87,52 +50,71 @@ class PressureMeasureExtractor extends TileMeasureExtractor
   getDefaultAlpha: ->
     0.8
 
-  getValue: (metar) ->
-    if metar.altimeter is null or metar.altimeter < 500 or metar.altimeter > 1500 then NaN else metar.altimeter
+  getValueProperty: () ->
+    'last.altimeter'
+
+  getValue: (stationRecord) ->
+    value = stationRecord.last.altimeter
+    if value is null or value < 500 or value > 1500 then NaN else value
 
 
 class WindMeasureExtractor extends TileMeasureExtractor
   constructor: ->
     super 5, 25, '#b10026', '#fd8d3c','#ffffb2'
 
-  getValue: (metar) ->
-    if metar.wind then metar.wind.speed else NaN
+  getValueProperty: () ->
+    'last.wind.speed'
+
+  getValue: (stationRecord) ->
+    if stationRecord.last.wind then stationRecord.last.wind.speed else NaN
 
 
 class MapTileProducer
   constructor: (@backend) ->
-    @projection = new ProjectionUtils()
+    @projection = new Projection()
 
-  DEFAULT_GRID_SIZE: 16
-
+  DEFAULT_GRID_SIZE: 32
   MAX_DATA_AGE: 6   # In hours
 
-  createGrid: (docs, measureExtractor, n, tileOriginPix, zoom, gridBuffer = 0) ->
-    # create grid
-    nbGrid = 1 + 2 *gridBuffer
-    grid = new MeasureGrid(nbGrid * n, nbGrid * 256)
-    # add docs
+  createGrid: (docs, measureExtractor, gridSize, tile) ->
+    grid = new MeasureGrid(gridSize, tile)
+    tileOriginPix = @projection.latLonToPoint(@projection.tileToLatLon(tile), tile.z)
+
+    # extract values
     gridWidth = grid.gridWidth()
 
-    for doc in docs
-      docPix = @projection.latLonToPointRelative {lat: doc.lat, lon: doc.lon}, tileOriginPix, zoom
+    # Create sample in grid coordinates
+    values = _.map docs, (doc) =>
+      value = if doc.last then measureExtractor.getValue(doc) else NaN
+      docPix = @projection.latLonToPointRelative doc, tileOriginPix, tile.z
       docGridX = Math.floor(docPix.x / gridWidth)
       docGridY = Math.floor(docPix.y / gridWidth)
-      grid.addValue(docGridX, docGridY, measureExtractor.getValue(doc.last)) if doc.last
+      { x: docGridX, y: docGridY, value: value }
+
+    # remove bad samples
+    values = _.filter values, (v) -> !isNaN(v.value)
+
+    stopWatch = Stopwatch.create()
+    stopWatch.start();
+    grid.fillFromValues values, 5
+    stopWatch.stop();
+    winston.log 'info', 'Interpolation on ' + grid.gridSize() + ' cell points and ' + values.length + ' samples took ' + stopWatch.elapsedMilliseconds + ' ms.'
     grid
+
 
   drawPoint: (ctx, tileOriginPix, zoom, doc) ->
     docPix = @projection.latLonToPointRelative {lat: doc.lat, lon: doc.lon}, tileOriginPix, zoom
     ctx.fillStyle = "#FF0000"
     ctx.fillRect docPix.x-3, docPix.y-3, 6, 6
 
-  drawGrid: (ctx, measureExtractor, grid, n, gridBuffer, alpha) ->
+  drawGrid: (ctx, measureExtractor, grid, alpha) ->
     gridWidth = grid.gridWidth()
+    n = grid.gridSize()
 
     # fill canvas
     for i in [0...n]
       for j in [0...n]
-        val = grid.valueAt(gridBuffer * n + i, gridBuffer * n + j)
+        val = grid.valueAt i, j
         if !isNaN(val)
           color = measureExtractor.getColor val
           color.setAlpha alpha
@@ -151,41 +133,38 @@ class MapTileProducer
 
   produceMap: (tile, measureExtractor, gridSize, drawStations, alpha, callback)  ->
 
-    tileMinLatLon = @projection.tileToLatLon { x: tile.x - 1, y:tile.y - 1, z: tile.z }
-    tileMaxLatLon = @projection.tileToLatLon { x: tile.x + 2, y: tile.y + 2, z: tile.z }
-
+    # corner of tile in lat/lon
+    tileMinLatLon = @projection.tileToLatLon tile
+    tileMaxLatLon = @projection.tileToLatLon { x: tile.x+1, y: tile.y+1, z: tile.z }
     tileOriginPix = @projection.latLonToPoint tileMinLatLon, tile.z
 
-    canvas = new Canvas 256, 256
-    ctx = canvas.getContext '2d'
-    gridBuffer = 1
+    bufferLon = 20 # in degrees
+    bufferLat = 5 # in degrees
 
-    query = $and: [ {lat: { $gte: tileMaxLatLon.lat }},
-      { lat: { $lt: tileMinLatLon.lat }},
-      { lon: { $gte: tileMinLatLon.lon}},
-      { lon: { $lt: tileMaxLatLon.lon }},
+    # prepare query
+    query = $and: [ {lat: { $gte: tileMaxLatLon.lat - bufferLat }},
+      { lat: { $lt: tileMinLatLon.lat + bufferLat }},
+      { lon: { $gte: tileMinLatLon.lon - bufferLon }},
+      { lon: { $lt: tileMaxLatLon.lon + bufferLon }},
       { lastUpdate: { $gte: moment().subtract(@MAX_DATA_AGE, 'hours').toDate() }}
     ]
 
+    fields = ['lastUpdate', 'lat', 'lon']
+    fields.push measureExtractor.getValueProperty()
+
+    canvas = new Canvas 256, 256
+    ctx = canvas.getContext '2d'
+
     @backend.withConnection (err, db) =>
       return callback err if err
-      db.collection('stations').find(query).toArray (err, docs) =>
+      db.collection('stations').find(query, _.flatten(fields)).toArray (err, docs) =>
         db.close()
         return callback err if err
 
-        winston.log 'info', 'Drawing tile with %d docs', docs.length
-
         # draw grid
-        grid = @createGrid docs, measureExtractor, gridSize, tileOriginPix, tile.z, gridBuffer
-        grid.meanValues()
+        grid = @createGrid docs, measureExtractor, gridSize, tile
 
-        stopWatch = Stopwatch.create()
-        stopWatch.start();
-        grid.interpolateIDW 4, gridBuffer * gridSize, (gridBuffer + 1) * gridSize, gridBuffer * gridSize, (gridBuffer + 1) * gridSize
-        stopWatch.stop();
-        winston.log 'info', 'Interpolation on ' + grid.n + ' points took ' + stopWatch.elapsedMilliseconds + ' ms.'
-
-        @drawGrid ctx, measureExtractor, grid, gridSize, gridBuffer, alpha
+        @drawGrid ctx, measureExtractor, grid, alpha
 
         # draw station locations
         @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs if drawStations

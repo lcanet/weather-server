@@ -2,86 +2,53 @@ _ = require 'lodash'
 mathjs = require 'mathjs'
 
 class MeasureGrid
-  constructor: (@n, @tileWidth = 256) ->
-    @grid = []
-    for i in [0...@n]
-      line = []
-      for j in [0...@n]
-        line.push []
-      @grid.push line
-
-  # The size of one cell of this grid in a tile
-  gridWidth: ->
-    @tileWidth / @n
-
-  addValue: (i, j, value) ->
-    @grid[i][j].push value if !isNaN(value) and !_.isUndefined(value)
+  constructor: (@n) ->
+    @grid = null
 
   valueAt: (i,j) ->
     @grid[i][j]
 
-  average: (tab) ->
-    NaN if tab.length is 0
-    (_.reduce tab, ((sum, x) -> sum + x), 0) / tab.length
+  gridSize: () ->
+    @n
 
-  # mean values in the grid
-  meanValues: ->
+  # The size of one cell of this grid in a tile
+  gridWidth: ->
+    256 / @n
+
+  fillFromValues: (samples, p = 1) ->
+    @grid = []
     for i in [0...@n]
+      @grid[i] = []
       for j in [0...@n]
-        @grid[i][j] = @average(@grid[i][j])
+        @grid[i][j] = @interpolateCell i, j, samples, p
 
-  interpolateCellNeighbours: (i, j, delta=1) ->
-    value = 0
+  interpolateCell: (i, j, samples, p = 1) ->
+    # first check for samples in same cells
     nb = 0
-    for k in [i-delta..i+delta]
-      for l in [j-delta..j+delta]
-        if k >= 0 and l >= 0 and k < @n and l < @n and !isNaN(@grid[k][l])
-          value += @grid[k][l]
-          nb++
-    if nb is 0 then NaN else value / nb
+    s = 0
+    for sample in samples
+      if sample.x is i and sample.y is j
+        nb++
+        s += sample.value
+
+    if nb isnt 0
+      return s / nb
+
+    # else proceed with interpolation
+    norm = @allWNorm i, j, samples, p
+    s +=  @w(i, j, sample, p) * sample.value for sample in samples
+    if norm is 0 then NaN else s / norm
+
+  allWNorm: (i, j, values, p = 1) ->
+    s = 0
+    s += @w(i, j, sample, p) for sample in values
+    s
+
+  w: (i, j, sample, p = 1) ->
+    1 / mathjs.pow(@dist(i, j, sample.x, sample.y), p)
 
   dist: (i1, j1, i2, j2) ->
     mathjs.sqrt( (i1-i2)*(i1-i2) + (j1-j2)*(j1-j2))
-
-  w: (i1, j1, i2, j2, p = 1) ->
-    1 / mathjs.pow(@dist(i1, j1, i2, j2), p)
-
-
-  allWNorm: (i, j, p = 1) ->
-    s = 0
-    for k in [0...@n]
-      for l in [0...@n]
-        s += @w(i, j, k, l, p) if !isNaN(@grid[k][l])
-    s
-
-  interpolateCellIDW: (i, j, p = 1) ->
-    n = @allWNorm i, j, p
-    s = 0
-    for k in [0...@n]
-      for l in [0...@n]
-        s += @w(i, j, k, l, p) * @grid[k][l]  if !isNaN(@grid[k][l])
-    if n  is 0 then NaN else s / n
-
-  interpolateGrid: (cellFn, startX = 0, endX = @n, startY = 0, endY = @n) ->
-    newGrid = []
-    for i in [startX...endX]
-      newGrid[i] = []
-      for j in [startY...endY]
-        newGrid[i][j] = if !isNaN(@grid[i][j]) then @grid[i][j] else cellFn(i, j)
-    @grid = newGrid
-
-
-  # interpolate empty cell value based on their 8 nearest neighbour
-  interpolateNeighbours: () ->
-    @interpolateGrid (i, j) =>
-      @interpolateCellNeighbours(i, j, 1)
-
-  # Interpolate using IDW
-  interpolateIDW: (p, startX = 0, endX = @n, startY = 0, endY = @n) ->
-    cellFn = (i, j) =>
-      @interpolateCellIDW(i, j, p)
-    @interpolateGrid cellFn, startX, endX, startX, endY
-
 
 
 
