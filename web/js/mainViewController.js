@@ -4,7 +4,8 @@ angular.module('weatherDashboard').controller('mainViewController', function($sc
 
     $scope.mapParameters = {
         layer: 'temperature',
-        marker: null
+        marker: null,
+        weather: true
     };
 
     $scope.toggleLayer = function(l) {
@@ -14,6 +15,10 @@ angular.module('weatherDashboard').controller('mainViewController', function($sc
             $scope.mapParameters.layer = l;
         }
     };
+    $scope.toggleWeatherLayer = function() {
+        $scope.mapParameters.weather = !$scope.mapParameters.weather;
+    };
+
 
     $scope.$watch('searchQuery', function(v){
         if (v) {
