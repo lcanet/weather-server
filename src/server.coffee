@@ -2,6 +2,7 @@ express = require 'express'
 winston = require 'winston'
 _ = require 'lodash'
 logEntries = require 'winston-logentries'
+moment = require 'moment'
 config = require '../config.json'
 Backend = require('./backend').Backend
 Poller = require('./poller').Poller
@@ -10,6 +11,7 @@ responseTime = require './responseTime'
 metar = require './metar'
 DataExtractor = require('./dataExtractor').DataExtractor
 MapTileProducer = require('./tile').MapTileProducer
+
 
 # Logging
 winston.add(winston.transports.DailyRotateFile, { filename: 'weather-server.log', level: 'debug' });
@@ -144,13 +146,17 @@ app.get '/station/:code', (req,res) ->
 
 
 app.get '/station/:code/history', (req,res) ->
+  query = icao: req.params.code
+  limit = parseInt(req.query.limit) || 100
+  if req.query.age
+    query.date = $gte:moment().subtract(parseInt(req.query.age), 'days').toDate()
+
   backend.withConnection (err, db) ->
     if err
       winston.error 'Cannot connect to mongo: ' + err
       sendError res
     else
-      limit = parseInt(req.params.limit) || 100
-      db.collection('history').find({icao: req.params.code}, { sort: [['date', -1]], limit: limit}).toArray (err, docs) ->
+      db.collection('history').find(query, { sort: [['date', -1]], limit: limit}).toArray (err, docs) ->
         if err
           sendError res, err
         else

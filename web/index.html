@@ -27,7 +27,7 @@
         </div>
     </div>
 </div>
-<div class="info-container">
+<div class="info-container" ng-controller="weatherPanelController">
     <md-content>
         <md-toolbar>
             <h2 class="md-toolbar-tools">
@@ -51,6 +51,7 @@
         </md-list>
     </md-content>
     <md-divider></md-divider>
+
     <md-content class="md-padding station-details" ng-if="weather">
         <div layout="horizontal" layout-align="center center">
             <div class="weather-icon">
@@ -102,6 +103,9 @@
             </div>
         </div>
 
+        <div layout="horizontal">
+
+        </div>
     </md-content>
 
 </div>
@@ -118,9 +122,11 @@
 <script src="libs/angular-material/angular-material.min.js"></script>
 <!-- endbuild -->
 
+
 <!-- build:js js/app.js -->
 <script src="js/weather-main.js"></script>
 <script src="js/mainViewController.js"></script>
+<script src="js/weatherPanelController.js"></script>
 <script src="js/map.js"></script>
 <script src="js/filters.js"></script>
 <!-- endbuild -->
