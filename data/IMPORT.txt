@@ -1,2 +1,10 @@
 To import initial stations data
 mongoimport  -d weather -c stations --type json --file stations.json
+
+To export, first clone collection
+    db.stations.copyTo('stations2')
+clean up:
+    db.stations2.update({}, {$unset: {last: 1, lastUpdate: 1}}, {multi: true})
+and export
+    mongoexport -d weather -c stations2 > stations.json
+
