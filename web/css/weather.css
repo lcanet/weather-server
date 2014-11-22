@@ -43,6 +43,10 @@
     width: 37%;
 
 }
+.md-tile-left-small {
+    min-width: 20px;
+    margin-left: 10px;
+}
 
 .station-details .weather-icon {
     font-size: 50px;

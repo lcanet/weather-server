@@ -51,5 +51,9 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
         }
     };
 
+    $scope.getFlagClass = function(suggest) {
+        return 'flag-' + suggest.country.toLowerCase();
+    };
+
 
 });

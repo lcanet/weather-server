@@ -12,6 +12,7 @@
     <!-- build:css css/app.css -->
     <link rel="stylesheet" href="css/weather-icons.css" />
     <link rel="stylesheet" href="css/weather.css" />
+    <link rel="stylesheet" href="css/flags.css" />
     <!-- endbuild -->
 
 </head>
@@ -39,9 +40,15 @@
         <md-text-float label="Search a city" ng-model="searchQuery"></md-text-float>
         <md-list class="search-completions" ng-show="showCompletions">
             <md-item ng-repeat="s in searchResults">
-                <div class="md-tile-content" ng-click="selectEntry(s)">
-                    <h4>{{ s.city }} <small>({{s.name }})</small>  </h4>
-                </div>
+                <md-item-content>
+                    <div class="md-tile-left-small">
+                        <div class="flag" ng-show="s.country" ng-class="getFlagClass(s)"></div>
+                    </div>
+                    <div class="md-tile-content" ng-click="selectEntry(s)">
+                        <h4>{{ s.city }} <small>({{s.name }})</small>
+                        </h4>
+                    </div>
+                </md-item-content>
             </md-item>
             <md-item ng-show="searchResults.length == 0">
                 <div class="md-tile-content">

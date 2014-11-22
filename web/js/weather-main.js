@@ -1,1 +1,1 @@
-angular.module('weatherDashboard', ['ngRoute', 'ngMaterial', 'angular-dimple']);
+angular.module('weatherDashboard', ['ngRoute', 'ngMaterial']);

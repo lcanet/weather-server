@@ -176,7 +176,7 @@ app.get '/stations/search', (req,res) ->
       sendError res
     else
       limit = parseInt(req.query.limit) || 10
-      db.collection('stations').find({city:{ $regex: req.query.q, $options: 'i' }}, {name: true, city: true, code: true}, { sort: [['city', 1]], limit: limit}).toArray (err, docs) ->
+      db.collection('stations').find({city:{ $regex: req.query.q, $options: 'i' }}, {name: true, city: true, code: true, country: true}, { sort: [['city', 1]], limit: limit}).toArray (err, docs) ->
         if err
           sendError res, err
         else
