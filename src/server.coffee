@@ -11,6 +11,7 @@ responseTime = require './responseTime'
 metar = require './metar'
 DataExtractor = require('./dataExtractor').DataExtractor
 MapTileProducer = require('./tile').MapTileProducer
+Stats = require('./stats').Stats
 
 
 # Logging
@@ -199,6 +200,12 @@ Produces map tiles
 ###
 
 new MapTileProducer(backend).registerRoutes(app);
+
+### ---------------------------------------------------
+Platform stats
+###
+
+new Stats(backend).registerRoutes(app);
 
 ### ---------------------------------------------------
   Other administratives endpoints
