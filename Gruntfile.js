@@ -150,6 +150,14 @@ module.exports = function(grunt) {
                             'images/{,*/}*.*',
                             'fonts/{,*/}*.*'
                         ]
+                    },
+                    {
+//for font-awesome
+                        expand: true,
+                        dot: true,
+                        cwd: 'web/libs/font-awesome',
+                        src: ['fonts/*.*'],
+                        dest: 'webdist'
                     }
                 ]
             },
