@@ -69,6 +69,17 @@ class WindMeasureExtractor extends TileMeasureExtractor
     if stationRecord.last.wind then stationRecord.last.wind.speed else NaN
 
 
+class HumiditydMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super 0, 100, '#8b00ff', '#0000ff', '#00ffff', '#00ff00', '#ffff00', '#ff7f00', '#ff0000'
+
+  getValueProperty: () ->
+    ['last.temperature', 'last.dewPoint']
+
+  getValue: (stationRecord) ->
+    Math.floor 100 - 5 * (stationRecord.last.temperature - stationRecord.last.dewPoint)
+
+
 class MapTileProducer
   constructor: (@backend) ->
     @projection = new Projection()
@@ -185,6 +196,8 @@ class MapTileProducer
       return new PressureMeasureExtractor()
     else if measure is 'wind'
       return new WindMeasureExtractor()
+    else if measure is 'humidity'
+      return new HumiditydMeasureExtractor()
     else
       return null
 
