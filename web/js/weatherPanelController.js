@@ -1,4 +1,4 @@
-angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http){
+angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http, $mdBottomSheet) {
     $scope.searchQuery = '';
     $scope.showCompletions = false;
 
@@ -55,5 +55,13 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
         return 'flag-' + suggest.country.toLowerCase();
     };
 
+    $scope.showStats = function($event) {
+        $mdBottomSheet.show({
+            templateUrl: 'bottom-sheet-stats.html',
+            controller: 'statsController',
+            targetEvent: $event
+
+        });
+    };
 
 });

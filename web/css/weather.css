@@ -63,3 +63,29 @@
     line-height: 32px;
     font-weight: bold;
 }
+
+.md-fab .fa {
+    font-size: 30px;
+}
+
+/* because of leaflet z-indexes */
+md-backdrop {
+    z-index: 1500;
+}
+md-bottom-sheet {
+    z-index: 1501;
+}
+
+.stats-container .md-icon-container {
+    text-align: center;
+    font-size: 30px;
+}
+.clock-green {
+    color: #0a8f08;
+}
+.clock-orange {
+    color: #919927;
+}
+.clock-grey {
+    color: #a1a0a4;
+}
