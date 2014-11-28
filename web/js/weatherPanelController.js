@@ -64,8 +64,12 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
         $mdBottomSheet.show({
             templateUrl: 'bottom-sheet-stats.html',
             controller: 'statsController',
+            transformTemplate: function(x){
+                // because inlined templates are beggining with a carriage return
+                // see https://github.com/angular/material/issues/792
+                return x.trim();
+            },
             targetEvent: $event
-
         });
     };
 
