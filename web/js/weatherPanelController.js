@@ -1,6 +1,5 @@
 angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http, $location, $mdBottomSheet) {
-    $scope.searchQuery = '';
-    $scope.showCompletions = false;
+    var DIRECTIONS = [ 'north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west' ];
 
     var loadStation = function(icao) {
         $http.get('/station/' + icao + '?format=simple').success(function(res){
@@ -13,6 +12,9 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
             $scope.graphData = res;
         });
     };
+
+    $scope.searchQuery = '';
+    $scope.showCompletions = false;
 
     $scope.$watch('searchQuery', function(v){
         if (v) {
@@ -32,7 +34,6 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
         return 'wi-' + w.icon;
     };
 
-    var DIRECTIONS = [ 'north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west' ];
 
     $scope.windIcon = function(w){
         for (var i = 0; i < DIRECTIONS.length; i++) {

@@ -13,7 +13,6 @@ angular.module('weatherDashboard').controller('statsController', function($scope
     };
 
     $http.get('/stats').success(function(res){
-        console.log(res);
         $scope.stats = res;
 
         $scope.statsByHour = {};
