@@ -1,6 +1,18 @@
-angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http, $mdBottomSheet) {
+angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http, $location, $mdBottomSheet) {
     $scope.searchQuery = '';
     $scope.showCompletions = false;
+
+    var loadStation = function(icao) {
+        $http.get('/station/' + icao + '?format=simple').success(function(res){
+            $scope.weather = res;
+            // defined in parent scope
+            $scope.mapParameters.marker = res;
+        });
+
+        $http.get('/station/' + icao + '/history?limit=500&age=1').success(function(res){
+            $scope.graphData = res;
+        });
+    };
 
     $scope.$watch('searchQuery', function(v){
         if (v) {
@@ -13,15 +25,7 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
 
     $scope.selectEntry = function(s){
         $scope.showCompletions = false;
-        $http.get('/station/' + s.code + '?format=simple').success(function(res){
-            $scope.weather = res;
-            // defined in parent scope
-            $scope.mapParameters.marker = res;
-        });
-
-        $http.get('/station/' + s.code + '/history?limit=500&age=1').success(function(res){
-            $scope.graphData = res;
-        });
+        $location.path('/' + s.code);
     };
 
     $scope.weatherIcon = function(w) {
@@ -63,5 +67,15 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
 
         });
     };
+
+    $scope.$on('$locationChangeSuccess', function(){
+        var code = $location.path();
+        if (code.length > 0 && code.charAt(0) === '/') {
+            code = code.substring(1);
+        }
+        if (code.length > 1) {
+            loadStation(code);
+        }
+    });
 
 });
