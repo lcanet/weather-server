@@ -1,4 +1,4 @@
-angular.module('weatherDashboard').directive('mapView', function($rootScope, $http){
+angular.module('weatherDashboard').directive('mapView', function($rootScope, $http, $location){
     var iconsCache = {};
 
     return {
@@ -15,7 +15,9 @@ angular.module('weatherDashboard').directive('mapView', function($rootScope, $ht
                 attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-            map.locate({setView: true});
+            if (!$location.path()) {
+                map.locate({setView: true});
+            }
 
             var overlay;
             var marker;
