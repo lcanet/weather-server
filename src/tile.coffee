@@ -5,7 +5,7 @@ _ = require 'lodash'
 moment = require 'moment'
 color = require 'color'
 gradient = require 'tinygradient'
-MeasureGrid = require('./grid').MeasureGrid
+InterpolationGrid = require('./grid').InterpolationGrid
 Stopwatch = require('node-stopwatch').Stopwatch;
 Projection = require('./projection').Projection
 
@@ -88,7 +88,7 @@ class MapTileProducer
   MAX_DATA_AGE: 6   # In hours
 
   createGrid: (docs, measureExtractor, gridSize, tile) ->
-    grid = new MeasureGrid(gridSize, tile)
+    grid = new InterpolationGrid(gridSize, tile)
     tileOriginPix = @projection.latLonToPoint(@projection.tileToLatLon(tile), tile.z)
 
     # extract values

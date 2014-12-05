@@ -1,7 +1,7 @@
 _ = require 'lodash'
 mathjs = require 'mathjs'
 
-class MeasureGrid
+class InterpolationGrid
   constructor: (@n) ->
     @grid = null
 
@@ -52,4 +52,4 @@ class MeasureGrid
 
 
 
-exports.MeasureGrid = MeasureGrid
+exports.InterpolationGrid = InterpolationGrid

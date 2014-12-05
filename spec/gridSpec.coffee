@@ -1,13 +1,13 @@
-MeasureGrid = require('../src/grid').MeasureGrid
+InterpolationGrid = require('../src/grid').InterpolationGrid
 
 describe 'Measure Grid', ->
     it 'should expose get/set', ->
-      grid = new MeasureGrid(4)
+      grid = new InterpolationGrid(4)
       expect(grid.gridWidth()).toBe 64
       expect(grid.gridSize()).toBe 4
 
     it 'Should fill from data', ->
-      grid = new MeasureGrid(2)
+      grid = new InterpolationGrid(2)
       values = [
         { x:0, y:0, value:1},
         { x:0, y:1, value:2},
@@ -21,7 +21,7 @@ describe 'Measure Grid', ->
       expect(grid.valueAt(1,1)).toBe 4
 
     it 'Should mean multiple data points in a cell', ->
-      grid = new MeasureGrid(2)
+      grid = new InterpolationGrid(2)
       values = [
         { x:0, y:0, value:3},
         { x:0, y:0, value:4},
@@ -31,7 +31,7 @@ describe 'Measure Grid', ->
       expect(grid.valueAt(0,0)).toBe 4
 
     it 'Should interpolate from data', ->
-      grid = new MeasureGrid(2)
+      grid = new InterpolationGrid(2)
       values = [
         { x:0, y:1, value:2},
         { x:1, y:0, value:2}
@@ -41,7 +41,7 @@ describe 'Measure Grid', ->
       expect(grid.valueAt(1,1)).toBe 2
 
     it 'Should interpolate from outside', ->
-      grid = new MeasureGrid(2)
+      grid = new InterpolationGrid(2)
       values = [
         { x:3, y:3, value:1},
       ]
@@ -50,7 +50,7 @@ describe 'Measure Grid', ->
       expect(grid.valueAt(0,0)).toBe 1
 
     it 'Should interpolate from data with coefficients', ->
-      grid = new MeasureGrid(4)
+      grid = new InterpolationGrid(4)
       values = [
         { x:0, y:0, value:1}
         { x:3, y:3, value:-1}
