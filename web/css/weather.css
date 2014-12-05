@@ -89,3 +89,23 @@ md-bottom-sheet {
 .clock-grey {
     color: #a1a0a4;
 }
+
+.preloader {
+    position: absolute;
+    z-index: 1000;
+    font-size: 3em;
+    text-align: center;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: #ececec;
+}
+.preloader-content {
+    margin: 200px auto;
+    line-height: 50px;
+}
+
+.main-content {
+    display: none;
+}
