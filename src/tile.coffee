@@ -10,19 +10,23 @@ Stopwatch = require('node-stopwatch').Stopwatch;
 Projection = require('./projection').Projection
 
 class TileMeasureExtractor
-  constructor: (@minValue, @maxValue, colors...) ->
-    @gradient = gradient(colors).rgb(256).reverse()
-    @a = 256 / (@maxValue - @minValue)
-    @b = -@minValue * @a
-
   getValueProperty: () ->
     null
 
   getValue: (stationRecord) ->
     NaN
 
-  getDefaultAlpha: ->
-    0.5
+
+class TileRenderer
+  constructor: ->
+  paint: (ctx, grid) ->
+
+
+class GradientTileRenderer
+  constructor: (@alpha, @minValue, @maxValue, colors...) ->
+    @gradient = gradient(colors).rgb(256).reverse()
+    @a = 256 / (@maxValue - @minValue)
+    @b = -@minValue * @a
 
   getColor: (val) ->
     val = @minValue if val < @minValue
@@ -32,11 +36,22 @@ class TileMeasureExtractor
       norm = @gradient.length - 1
     @gradient[norm]
 
+  paint: (ctx, grid) ->
+    gridWidth = grid.gridWidth()
+    n = grid.gridSize()
+    # fill canvas
+    for i in [0...n]
+      for j in [0...n]
+        val = grid.valueAt i, j
+        if !isNaN(val)
+          color = @getColor val
+          color.setAlpha @alpha
+          colorStr = color.toRgbString()
+          ctx.fillStyle = colorStr
+          ctx.fillRect i*gridWidth, j*gridWidth, gridWidth, gridWidth
+
 
 class TemperatureMeasureExtractor extends TileMeasureExtractor
-  constructor: ->
-    super -20, 50, '#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8b00ff'
-
   getValueProperty: () ->
     'last.temperature'
 
@@ -44,12 +59,6 @@ class TemperatureMeasureExtractor extends TileMeasureExtractor
     stationRecord.last.temperature
 
 class PressureMeasureExtractor extends TileMeasureExtractor
-  constructor: ->
-    super 980, 1050, '#f0f9e8', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#2b8cbe', '#2b8cbe'
-
-  getDefaultAlpha: ->
-    0.8
-
   getValueProperty: () ->
     'last.altimeter'
 
@@ -59,9 +68,6 @@ class PressureMeasureExtractor extends TileMeasureExtractor
 
 
 class WindMeasureExtractor extends TileMeasureExtractor
-  constructor: ->
-    super 5, 25, '#b10026', '#fd8d3c','#ffffb2'
-
   getValueProperty: () ->
     'last.wind.speed'
 
@@ -70,9 +76,6 @@ class WindMeasureExtractor extends TileMeasureExtractor
 
 
 class HumiditydMeasureExtractor extends TileMeasureExtractor
-  constructor: ->
-    super 0, 100, '#8b00ff', '#0000ff', '#00ffff', '#00ff00', '#ffff00', '#ff7f00', '#ff0000'
-
   getValueProperty: () ->
     ['last.temperature', 'last.dewPoint']
 
@@ -85,6 +88,7 @@ class MapTileProducer
     @projection = new Projection()
 
   DEFAULT_GRID_SIZE: 32
+  DEFAULT_ALPHA: 0.5
   MAX_DATA_AGE: 6   # In hours
 
   createGrid: (docs, measureExtractor, gridSize, tile) ->
@@ -118,21 +122,6 @@ class MapTileProducer
     ctx.fillStyle = "#FF0000"
     ctx.fillRect docPix.x-3, docPix.y-3, 6, 6
 
-  drawGrid: (ctx, measureExtractor, grid, alpha) ->
-    gridWidth = grid.gridWidth()
-    n = grid.gridSize()
-
-    # fill canvas
-    for i in [0...n]
-      for j in [0...n]
-        val = grid.valueAt i, j
-        if !isNaN(val)
-          color = measureExtractor.getColor val
-          color.setAlpha alpha
-          colorStr = color.toRgbString()
-          ctx.fillStyle = colorStr
-          ctx.fillRect i*gridWidth, j*gridWidth, gridWidth, gridWidth
-
 
   applyWatermark: (ctx) ->
     ctx.translate 128, 128
@@ -142,7 +131,7 @@ class MapTileProducer
     ctx.textAlign = 'center'
     ctx.fillText 'weather-api.lc6.net', 0, 0
 
-  produceMap: (tile, measureExtractor, gridSize, drawStations, alpha, callback)  ->
+  produceMap: (tile, measureExtractor, renderer, gridSize, drawStations, callback)  ->
 
     # corner of tile in lat/lon
     tileMinLatLon = @projection.tileToLatLon tile
@@ -175,7 +164,7 @@ class MapTileProducer
         # draw grid
         grid = @createGrid docs, measureExtractor, gridSize, tile
 
-        @drawGrid ctx, measureExtractor, grid, alpha
+        renderer.paint ctx, grid
 
         # draw station locations
         @drawPoint(ctx, tileOriginPix, tile.z, doc) for doc in docs if drawStations
@@ -189,7 +178,7 @@ class MapTileProducer
     winston.log 'error', 'Cannot produce tile' + (err.message || err)
     res.status(500).send('oops, an error occured')
 
-  buildMeasure: (measure) ->
+  buildMeasureExtractor: (measure) ->
     if measure is 'temperature'
       return new TemperatureMeasureExtractor()
     else if measure is 'pressure'
@@ -201,23 +190,39 @@ class MapTileProducer
     else
       return null
 
+  buildRenderer: (measure, alpha) ->
+    if measure is 'temperature'
+      return new GradientTileRenderer alpha, -20, 50, '#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#8b00ff'
+    else if measure is 'pressure'
+      return new GradientTileRenderer alpha, 980, 1050, '#f0f9e8', '#ccebc5', '#a8ddb5', '#7bccc4', '#4eb3d3', '#2b8cbe', '#2b8cbe'
+    else if measure is 'wind'
+      return new GradientTileRenderer alpha, 5, 25, '#b10026', '#fd8d3c','#ffffb2'
+    else if measure is 'humidity'
+      return new GradientTileRenderer alpha, 0, 100, '#8b00ff', '#0000ff', '#00ffff', '#00ff00', '#ffff00', '#ff7f00', '#ff0000'
+    else
+      return null
+
   registerRoutes: (app) ->
     app.get '/map/:measure/:z/:x/:y.png', (req, res) =>
 
-      measureExtractor = @buildMeasure req.params.measure
+      measureExtractor = @buildMeasureExtractor req.params.measure
       if measureExtractor is null
         return res.status(400).send('Invalid measure')
+
+      gridSize = if req.query.grid then parseInt(req.query.grid) else @DEFAULT_GRID_SIZE
+      stations = !!req.query.stations
+      alpha = if req.query.alpha then parseFloat(req.query.alpha) else @DEFAULT_ALPHA
+
+      renderer = @buildRenderer req.params.measure, alpha
+      if renderer is null
+        return res.status(400).send('Invalid renderer')
 
       tile =
         x:  parseInt(req.params.x),
         y:  parseInt(req.params.y),
         z:  parseInt(req.params.z)
 
-      gridSize = if req.query.grid then parseInt(req.query.grid) else @DEFAULT_GRID_SIZE
-      stations = !!req.query.stations
-      alpha = if req.query.alpha then parseFloat(req.query.alpha) else measureExtractor.getDefaultAlpha()
-
-      @produceMap tile, measureExtractor, gridSize, stations, alpha, (err, pngBuf) =>
+      @produceMap tile, measureExtractor, renderer, gridSize, stations, (err, pngBuf) =>
         return @sendError(res, err) if err
 
         res.set 'Content-Type', 'image/png'
