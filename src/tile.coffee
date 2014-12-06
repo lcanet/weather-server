@@ -10,6 +10,8 @@ Stopwatch = require('node-stopwatch').Stopwatch;
 Projection = require('./projection').Projection
 
 class TileMeasureExtractor
+  constructor: (@interpolationFactor = 5) ->
+
   getValueProperty: () ->
     null
 
@@ -50,8 +52,10 @@ class GradientTileRenderer
           ctx.fillStyle = colorStr
           ctx.fillRect i*gridWidth, j*gridWidth, gridWidth, gridWidth
 
-
 class TemperatureMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super(5)
+
   getValueProperty: () ->
     'last.temperature'
 
@@ -59,6 +63,9 @@ class TemperatureMeasureExtractor extends TileMeasureExtractor
     stationRecord.last.temperature
 
 class PressureMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super(5)
+
   getValueProperty: () ->
     'last.altimeter'
 
@@ -68,14 +75,20 @@ class PressureMeasureExtractor extends TileMeasureExtractor
 
 
 class WindMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super(5)
+
   getValueProperty: () ->
-    'last.wind.speed'
+    ['last.wind.speed', 'last.wind.direction']
 
   getValue: (stationRecord) ->
     if stationRecord.last.wind then stationRecord.last.wind.speed else NaN
 
 
 class HumiditydMeasureExtractor extends TileMeasureExtractor
+  constructor: ->
+    super(5)
+
   getValueProperty: () ->
     ['last.temperature', 'last.dewPoint']
 
@@ -109,11 +122,14 @@ class MapTileProducer
     # remove bad samples
     values = _.filter values, (v) -> !isNaN(v.value)
 
-    stopWatch = Stopwatch.create()
-    stopWatch.start();
-    grid.fillFromValues values, 5
-    stopWatch.stop();
-    winston.log 'info', 'Interpolation on ' + grid.gridSize() + ' cell points and ' + values.length + ' samples took ' + stopWatch.elapsedMilliseconds + ' ms.'
+    idwFactor = measureExtractor.interpolationFactor
+    if idwFactor
+      stopWatch = Stopwatch.create()
+      stopWatch.start();
+      grid.fillFromValues values, 5
+      stopWatch.stop();
+      winston.log 'info', 'Interpolation on ' + grid.gridSize() + ' cell points and ' + values.length + ' samples took ' + stopWatch.elapsedMilliseconds + ' ms.'
+
     grid
 
 
