@@ -7,8 +7,7 @@ iconifier = require './iconifier'
 
 copy = (source, dest, properties) ->
   for key in properties
-    if source[key]
-      dest[key] = source[key]
+    dest[key] = source[key] if source[key]?
   dest
 
 appendSunCalcs = (dest, tz = 'GMT') ->
