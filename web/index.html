@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <title>Weather</title>
     <!-- build:css css/vendor.css -->
-    <link rel="stylesheet" href="libs/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="libs/angular-material/angular-material.min.css" />
-    <link rel="stylesheet" href="libs/angular-material/themes/blue-theme.css" />
-    <link rel="stylesheet" href="libs/font-awesome/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="libs/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="libs/angular-material/angular-material.min.css"/>
+    <link rel="stylesheet" href="libs/font-awesome/css/font-awesome.min.css"/>
     <!-- endbuild -->
     <!-- build:css css/app.css -->
-    <link rel="stylesheet" href="css/weather-icons.css" />
-    <link rel="stylesheet" href="css/weather.css" />
-    <link rel="stylesheet" href="css/flags.css" />
+    <link rel="stylesheet" href="css/weather-icons.css"/>
+    <link rel="stylesheet" href="css/weather.css"/>
+    <link rel="stylesheet" href="css/flags.css"/>
     <!-- endbuild -->
 
 </head>
@@ -21,125 +20,135 @@
 
 <div class="preloader">
     <div class="preloader-content">
-        &nbsp;&nbsp;  loading ...
+        &nbsp;&nbsp; loading ...
         <br/>
         <img src="data:image/gif;base64,R0lGODlhNgA3APMAAOzs7AAAAG9vbxoaGg0NDcjIyE5OTszMzLa2tkJCQoCAgAAAAAAAAAAAAAAAAAAAACH+GkNyZWF0ZWQgd2l0aCBhamF4bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAANgA3AAAEzBDISau9OOvNu/9gKI5kaZ4lkhBEgqCnws6EApMITb93uOqsRC8EpA1Bxdnx8wMKl51ckXcsGFiGAkamsy0LA9pAe1EFqRbBYCAYXXUGk4DWJhZN4dlAlMSLRW80cSVzM3UgB3ksAwcnamwkB28GjVCWl5iZmpucnZ4cj4eWoRqFLKJHpgSoFIoEe5ausBeyl7UYqqw9uaVrukOkn8LDxMXGx8ibwY6+JLxydCO3JdMg1dJ/Is+E0SPLcs3Jnt/F28XXw+jC5uXh4u89EQAh+QQACgABACwAAAAANgA3AAAEzhDISau9OOvNu/9gKI5kaZ5oqhYGQRiFWhaD6w6xLLa2a+iiXg8YEtqIIF7vh/QcarbB4YJIuBKIpuTAM0wtCqNiJBgMBCaE0ZUFCXpoknWdCEFvpfURdCcM8noEIW82cSNzRnWDZoYjamttWhphQmOSHFVXkZecnZ6foKFujJdlZxqELo1AqQSrFH1/TbEZtLM9shetrzK7qKSSpryixMXGx8jJyifCKc1kcMzRIrYl1Xy4J9cfvibdIs/MwMue4cffxtvE6qLoxubk8ScRACH5BAAKAAIALAAAAAA2ADcAAATOEMhJq7046827/2AojmRpnmiqrqwwDAJbCkRNxLI42MSQ6zzfD0Sz4YYfFwyZKxhqhgJJeSQVdraBNFSsVUVPHsEAzJrEtnJNSELXRN2bKcwjw19f0QG7PjA7B2EGfn+FhoeIiYoSCAk1CQiLFQpoChlUQwhuBJEWcXkpjm4JF3w9P5tvFqZsLKkEF58/omiksXiZm52SlGKWkhONj7vAxcbHyMkTmCjMcDygRNAjrCfVaqcm11zTJrIjzt64yojhxd/G28XqwOjG5uTxJhEAIfkEAAoAAwAsAAAAADYANwAABM0QyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7/i8qmCoGQoacT8FZ4AXbFopfTwEBhhnQ4w2j0GRkgQYiEOLPI6ZUkgHZwd6EweLBqSlq6ytricICTUJCKwKkgojgiMIlwS1VEYlspcJIZAkvjXHlcnKIZokxJLG0KAlvZfAebeMuUi7FbGz2z/Rq8jozavn7Nev8CsRACH5BAAKAAQALAAAAAA2ADcAAATLEMhJq7046827/2AojmRpnmiqrqwwDAJbCkRNxLI42MSQ6zzfD0Sz4YYfFwzJNCmPzheUyJuKijVrZ2cTlrg1LwjcO5HFyeoJeyM9U++mfE6v2+/4PD6O5F/YWiqAGWdIhRiHP4kWg0ONGH4/kXqUlZaXmJlMBQY1BgVuUicFZ6AhjyOdPAQGQF0mqzauYbCxBFdqJao8rVeiGQgJNQkIFwdnB0MKsQrGqgbJPwi2BMV5wrYJetQ129x62LHaedO21nnLq82VwcPnIhEAIfkEAAoABQAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7/g8Po7kX9haKoAZZ0iFGIc/iRaDQ40Yfj+RepSVlpeYAAgJNQkIlgo8NQqUCKI2nzNSIpynBAkzaiCuNl9BIbQ1tl0hraewbrIfpq6pbqsioaKkFwUGNQYFSJudxhUFZ9KUz6IGlbTfrpXcPN6UB2cHlgfcBuqZKBEAIfkEAAoABgAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhhh8XDMk0KY/OF5TIm4qKNWtnZxOWuDUvCNw7kcXJ6gl7Iz1T76Z8Tq/b7yJEopZA4CsKPDUKfxIIgjZ+P3EWe4gECYtqFo82P2cXlTWXQReOiJE5bFqHj4qiUhmBgoSFho59rrKztLVMBQY1BgWzBWe8UUsiuYIGTpMglSaYIcpfnSHEPMYzyB8HZwdrqSMHxAbath2MsqO0zLLorua05OLvJxEAIfkEAAoABwAsAAAAADYANwAABMwQyEmrvTjrzbv/YCiOZGmeaKqurDAMAlsKRE3EsjjYxJDrPN8PRLPhfohELYHQuGBDgIJXU0Q5CKqtOXsdP0otITHjfTtiW2lnE37StXUwFNaSScXaGZvm4r0jU1RWV1hhTIWJiouMjVcFBjUGBY4WBWw1A5RDT3sTkVQGnGYYaUOYPaVip3MXoDyiP3k3GAeoAwdRnRoHoAa5lcHCw8TFxscduyjKIrOeRKRAbSe3I9Um1yHOJ9sjzCbfyInhwt3E2cPo5dHF5OLvJREAOwAAAAAAAAAAAA=="/>
     </div>
 </div>
 
 
-<div class="map-container">
-    <div map-view class="map">
-        <div class="map-toolbar main-content">
-            <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.weather}" ng-click="toggleWeatherLayer()">Icons</md-button>
-            <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'temperature'}" ng-click="toggleLayer('temperature')">Temperature</md-button>
-            <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'pressure'}" ng-click="toggleLayer('pressure')">Pressure</md-button>
-            <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'wind'}" ng-click="toggleLayer('wind')">Wind</md-button>
-            <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'humidity'}" ng-click="toggleLayer('humidity')">Humidity</md-button>
-        </div>
-    </div>
-</div>
-<div class="info-container main-content" ng-controller="weatherPanelController">
-    <md-content>
-        <md-toolbar>
-            <h2 class="md-toolbar-tools">
-                <span>Weather</span>
-            </h2>
-        </md-toolbar>
-    </md-content>
-    <md-content class="md-padding search-box">
-        <md-text-float label="Search a city" ng-model="searchQuery"></md-text-float>
-        <md-list class="search-completions" ng-show="showCompletions">
-            <md-item ng-repeat="s in searchResults">
-                <md-item-content>
-                    <div class="md-tile-left-small">
-                        <div class="flag" ng-show="s.country" ng-class="getFlagClass(s)"></div>
+<div layout="column" layout-fill>
+
+    <section layout="row" flex>
+        <md-sidenav class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$media('gt-md')">
+            <md-toolbar class="md-theme-indigo">
+                <h1 class="md-toolbar-tools">Weather</h1>
+            </md-toolbar>
+            <md-content class="md-padding" ng-controller="weatherPanelController">
+                <md-button ng-click="close()" class="md-primary" hide-gt-md>
+                    Close
+                </md-button>
+
+                <md-content class="md-padding search-box">
+                    <md-text-float label="Search a city" ng-model="searchQuery"></md-text-float>
+                    <md-list class="search-completions" ng-show="showCompletions">
+                        <md-item ng-repeat="s in searchResults">
+                            <md-item-content>
+                                <div class="md-tile-left-small">
+                                    <div class="flag" ng-show="s.country" ng-class="getFlagClass(s)"></div>
+                                </div>
+                                <div class="md-tile-content" ng-click="selectEntry(s)">
+                                    <h4>{{ s.city }} <small>({{s.name }})</small>
+                                    </h4>
+                                </div>
+                            </md-item-content>
+                        </md-item>
+                        <md-item ng-show="searchResults.length == 0">
+                            <div class="md-tile-content">
+                                <em>No cities found</em>
+                            </div>
+                        </md-item>
+                    </md-list>
+                </md-content>
+                <md-divider></md-divider>
+
+                <md-content class="md-padding station-details" ng-if="weather">
+                    <div layout="horizontal" layout-align="center center">
+                        <div class="weather-icon">
+                            <span class="wi" ng-class="weatherIcon(weather)"></span>
+                        </div>
+                        <div flex>
+                            <h3>{{ weather.city }} ( {{ weather.name }} )
+                                <br/>
+                                <span class="update-info">last update {{weather.lastUpdate | date:'d/M/yy HH:mm'}}</span>
+
+                            </h3>
+                        </div>
                     </div>
-                    <div class="md-tile-content" ng-click="selectEntry(s)">
-                        <h4>{{ s.city }} <small>({{s.name }})</small>
-                        </h4>
+                    <div layout="horizontal" layout-align="center center">
+                        <div class="weather-icon">
+                            <span class="wi wi-thermometer"></span>
+                        </div>
+                        <div flex>
+                            <h3>{{ weather.temperature }} ° C </h3>
+                        </div>
+                        <div class="weather-icon">
+                            <span class="wi wi-sprinkles"></span>
+                        </div>
+                        <div flex>
+                            <h3>{{ weather.humidity }} % </h3>
+                        </div>
                     </div>
-                </md-item-content>
-            </md-item>
-            <md-item ng-show="searchResults.length == 0">
-                <div class="md-tile-content">
-                    <em>No cities found</em>
+                    <div layout="horizontal" layout-align="center center">
+                        <div class="weather-icon" ng-if="weather.wind && weather.wind.speed">
+                            <span class="wi" ng-class="windIcon(weather)"></span>
+                        </div>
+                        <div flex ng-if="weather.wind && weather.wind.speed">
+                            <h3>{{ weather.wind.speed  | toKmh | number:0 }} km/h </h3>
+                        </div>
+
+                    </div>
+
+                    <div layout="horizontal" layout-align="center center">
+                        <div class="weather-icon">
+                            <span class="wi wi-sunrise"></span>
+                        </div>
+                        <div flex>
+                            <h4> {{ formatHour(weather.sunTimes.sunrise)}} </h4>
+                        </div>
+                    </div>
+
+                    <div layout="horizontal" layout-align="center center">
+                        <div class="weather-icon">
+                            <span class="wi wi-sunset"></span>
+                        </div>
+                        <div flex>
+                            <h4> {{ formatHour(weather.sunTimes.sunset) }} </h4>
+                        </div>
+                    </div>
+                </md-content>
+
+                <md-divider></md-divider>
+
+                <md-content>
+                    <secton layout="row" layout-align="center center" style="margin: 10px">
+                        <md-button class="md-fab" aria-label="Show stats" ng-click="showStats($event)">
+                            <span class="fa fa-calculator"></span>
+
+                        </md-button>
+                    </secton>
+
+                </md-content>
+            </md-content>
+        </md-sidenav>
+        <md-content flex class="md-padding">
+            <div layout-fill layout="column">
+                <div map-view class="map">
+                    <div class="map-toolbar main-content">
+                        <md-button aria-label="Open Panel"  class="md-raised"  hide-gt-md ng-click="toggleLeft()">Panel</md-button>
+                        <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.weather}" ng-click="toggleWeatherLayer()">Icons</md-button>
+                        <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'temperature'}" ng-click="toggleLayer('temperature')">Temperature</md-button>
+                        <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'pressure'}" ng-click="toggleLayer('pressure')">Pressure</md-button>
+                        <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'wind'}" ng-click="toggleLayer('wind')">Wind</md-button>
+                        <md-button aria-label="Toggle layer"  class="md-raised" ng-class="{'md-primary': mapParameters.layer == 'humidity'}" ng-click="toggleLayer('humidity')">Humidity</md-button>
+                    </div>
                 </div>
-            </md-item>
-        </md-list>
-    </md-content>
-    <md-divider></md-divider>
+            </div>
+        </md-content>
 
-    <md-content class="md-padding station-details" ng-if="weather">
-        <div layout="horizontal" layout-align="center center">
-            <div class="weather-icon">
-                <span class="wi" ng-class="weatherIcon(weather)"></span>
-            </div>
-            <div flex>
-                <h3>{{ weather.city }} ( {{ weather.name }} )
-                    <br/>
-                    <span class="update-info">last update {{weather.lastUpdate | date:'d/M/yy HH:mm'}}</span>
+    </section>
 
-                </h3>
-            </div>
-        </div>
-        <div layout="horizontal">
-            <div class="weather-icon">
-                <span class="wi wi-thermometer"></span>
-            </div>
-            <div flex>
-                <h3>{{ weather.temperature }} ° C </h3>
-            </div>
-            <div class="weather-icon">
-                <span class="wi wi-sprinkles"></span>
-            </div>
-            <div flex>
-                <h3>{{ weather.humidity }} % </h3>
-            </div>
-            <div class="weather-icon" ng-if="weather.wind && weather.wind.speed">
-                <span class="wi" ng-class="windIcon(weather)"></span>
-            </div>
-            <div flex ng-if="weather.wind && weather.wind.speed">
-                <h3>{{ weather.wind.speed  | toKmh | number:0 }} km/h </h3>
-            </div>
-
-        </div>
-
-        <div layout="horizontal">
-            <div class="weather-icon">
-                <span class="wi wi-sunrise"></span>
-            </div>
-            <div flex>
-                <h4> {{ formatHour(weather.sunTimes.sunrise)}} </h4>
-            </div>
-
-            <div class="weather-icon">
-                <span class="wi wi-sunset"></span>
-            </div>
-            <div flex>
-                <h4> {{ formatHour(weather.sunTimes.sunset) }} </h4>
-            </div>
-        </div>
-
-        <div layout="horizontal">
-
-        </div>
-    </md-content>
-
-    <md-divider></md-divider>
-
-    <md-content>
-        <secton layout="row" layout-align="center center" style="margin: 10px">
-            <md-button class="md-fab" aria-label="Show stats" ng-click="showStats($event)">
-                <span class="fa fa-calculator"></span>
-
-            </md-button>
-        </secton>
-
-    </md-content>
 </div>
-
-
 <script type="text/ng-template" id="bottom-sheet-stats.html">
     <md-bottom-sheet class="md-grid stats-container">
         <md-list>
@@ -236,10 +245,17 @@
 </script>
 
 <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
     ga('create', 'UA-15921540-2', 'auto');
     ga('send', 'pageview');
@@ -268,7 +284,6 @@
 <script src="js/map.js"></script>
 <script src="js/filters.js"></script>
 <!-- endbuild -->
-
 
 
 </body>

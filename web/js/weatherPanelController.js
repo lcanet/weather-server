@@ -1,4 +1,4 @@
-angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http, $location, $mdBottomSheet) {
+angular.module('weatherDashboard').controller('weatherPanelController', function($scope, $http, $location, $mdBottomSheet, $mdSidenav) {
     var DIRECTIONS = [ 'north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west' ];
 
     var loadStation = function(icao) {
@@ -82,5 +82,9 @@ angular.module('weatherDashboard').controller('weatherPanelController', function
             loadStation(code);
         }
     });
+
+    $scope.close = function() {
+        $mdSidenav('left').close();
+    };
 
 });
